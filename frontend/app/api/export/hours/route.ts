@@ -23,7 +23,9 @@ export async function GET() {
 
         if (hoursError) throw hoursError;
 
-        const hoursMap = new Map((hours || []).map((h: any) => [h.mentee_id, parseFloat(h.completed_hours)]));
+        const hoursMap = new Map<string, number>(
+            (hours || []).map((h: any) => [h.mentee_id, parseFloat(h.completed_hours)])
+        );
 
         // Build CSV content
         let csvContent = "Név;Email;Belépés dátuma;Kötelező órák;Teljesített órák;Hátralévő órák;Teljesítés %\n";
