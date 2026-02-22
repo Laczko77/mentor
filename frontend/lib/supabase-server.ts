@@ -1,20 +1,42 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+const mockSupabase = {
+    auth: {
+        getSession: async () => ({ data: { session: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
+        getUser: async () => ({ data: { user: null }, error: null }),
+    },
+    from: () => ({
+        select: () => ({
+            eq: () => ({
+                single: async () => ({ data: null, error: null }),
+                maybeSingle: async () => ({ data: null, error: null }),
+                in: () => ({
+                    single: async () => ({ data: null, error: null }),
+                    maybeSingle: async () => ({ data: null, error: null }),
+                })
+            }),
+            in: () => ({
+                single: async () => ({ data: null, error: null }),
+                maybeSingle: async () => ({ data: null, error: null }),
+            }),
+            single: async () => ({ data: null, error: null }),
+            maybeSingle: async () => ({ data: null, error: null }),
+        }),
+    }),
+} as any;
+
 export async function createClient() {
-    const cookieStore = await cookies();
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!url || !anonKey) {
-        console.warn("Building: Supabase environment variables are missing in createClient (server).");
-        return createServerClient("https://placeholder.supabase.co", "placeholder", {
-            cookies: {
-                getAll() { return []; },
-                setAll() { }
-            }
-        });
+    if (!url || !anonKey || url === "undefined") {
+        console.warn("Building: Using mock Supabase server client.");
+        return mockSupabase;
     }
+
+    const cookieStore = await cookies();
 
     return createServerClient(url, anonKey, {
         cookies: {
@@ -27,7 +49,7 @@ export async function createClient() {
                         cookieStore.set(name, value, options)
                     );
                 } catch (error) {
-                    // The `setAll` method was called from a Server Component.
+                    // Ignore setAll errors in Server Components
                 }
             },
         },
@@ -36,20 +58,14 @@ export async function createClient() {
 
 /**
  * Creates a Supabase client with the service role key for admin operations.
- * Use this only in API routes or Server Actions where needed, and never expose to the client.
  */
 export function createAdminClient() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!url || !serviceRoleKey) {
-        console.warn("Building: admin environment variables are missing in createAdminClient.");
-        return createServerClient("https://placeholder.supabase.co", "placeholder", {
-            cookies: {
-                getAll() { return []; },
-                setAll() { }
-            }
-        });
+    if (!url || !serviceRoleKey || url === "undefined") {
+        console.warn("Building: Using mock Supabase admin client.");
+        return mockSupabase;
     }
 
     return createServerClient(url, serviceRoleKey, {
