@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Telekom Premium Identity Imports */
+@import "./styles/_variables.css";
+@import "./styles/_components.css";
+@import "./styles/_animations.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    body {
+        @apply bg-background text-foreground transition-colors duration-300;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    /* Smoother scrolling overall */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Elegant selection */
+    ::selection {
+        background-color: var(--color-telekom-magenta);
+        color: var(--color-telekom-white);
+    }
+}

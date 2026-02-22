@@ -1,0 +1,103 @@
+/*
+  Core variables for Telekom Premium Minimalist Theme
+*/
+@theme inline {
+  /* Default Colors */
+  --color-telekom-magenta: #E20074;
+  --color-telekom-black: #000000;
+  --color-cloud-white: #ffffff;
+  --color-telekom-grey-light: #f4f4f4;
+  --color-telekom-grey: #8d8d8d;
+  --color-tech-gray: #191919;
+
+  /* Tailwind component mappings from root variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Custom Radii - Premium Minimalist generally uses sharp borders or very slight curves */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
+
+:root {
+  /* Map shadcn primary to Telekom Magenta */
+  --primary: var(--color-telekom-magenta);
+  --primary-foreground: var(--color-cloud-white);
+
+  --background: var(--color-cloud-white);
+  --foreground: var(--color-telekom-black);
+
+  --card: var(--color-cloud-white);
+  --card-foreground: var(--color-telekom-black);
+
+  --popover: var(--color-cloud-white);
+  --popover-foreground: var(--color-telekom-black);
+
+  --secondary: var(--color-telekom-grey-light);
+  --secondary-foreground: var(--color-telekom-black);
+
+  --muted: var(--color-telekom-grey-light);
+  --muted-foreground: var(--color-telekom-grey);
+
+  --accent: var(--color-telekom-grey-light);
+  --accent-foreground: var(--color-telekom-black);
+
+  --destructive: #d32f2f;
+
+  --border: var(--color-telekom-grey-light);
+  --input: var(--color-telekom-grey-light);
+  --ring: var(--color-telekom-magenta);
+
+  --radius: 0.25rem;
+  /* very sharp radius for minimalist aesthetics */
+}
+
+.dark {
+  --background: var(--color-tech-gray);
+  --foreground: var(--color-cloud-white);
+
+  --card: rgba(25, 25, 25, 0.7);
+  /* glassmorphic tech-gray */
+  --card-foreground: var(--color-cloud-white);
+
+  --popover: var(--color-tech-gray);
+  --popover-foreground: var(--color-cloud-white);
+
+  --primary: var(--color-telekom-magenta);
+  --primary-foreground: var(--color-cloud-white);
+
+  --secondary: rgba(255, 255, 255, 0.05);
+  /* Tech secondary */
+  --secondary-foreground: var(--color-cloud-white);
+
+  --muted: rgba(255, 255, 255, 0.1);
+  --muted-foreground: var(--color-telekom-grey);
+
+  --accent: rgba(226, 0, 116, 0.15);
+  /* magenta tint for accent */
+  --accent-foreground: var(--color-cloud-white);
+
+  --border: rgba(255, 255, 255, 0.1);
+  /* subtle light border */
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: var(--color-telekom-magenta);
+}

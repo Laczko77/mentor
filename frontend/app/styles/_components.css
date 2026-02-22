@@ -1,0 +1,48 @@
+/*
+  Custom overrides for Shadcn UI components for that Premium Feel
+*/
+
+.btn-telekom {
+    @apply border border-transparent transition-all duration-300 relative overflow-hidden;
+}
+
+.btn-telekom:hover {
+    @apply opacity-90 shadow-[0_0_15px_rgba(226,0,116,0.3)] transform -translate-y-0.5;
+}
+
+.btn-telekom:active {
+    @apply transform translate-y-0 shadow-sm opacity-100;
+}
+
+/* Glassmorphic Tech Card */
+.card-telekom {
+    @apply bg-card text-card-foreground border-border shadow-sm transition-all duration-300 backdrop-blur-md rounded-xl;
+}
+
+.card-telekom:hover {
+    @apply animate-glow-border shadow-lg;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.input-telekom {
+    @apply transition-all duration-300 border-border bg-transparent backdrop-blur-sm rounded-md;
+}
+
+.input-telekom:focus,
+.input-telekom:focus-visible {
+    @apply ring-2 ring-ring border-transparent outline-none;
+    box-shadow: 0 0 0 2px rgba(226, 0, 116, 0.2);
+}
+
+.badge-telekom {
+    @apply uppercase tracking-wider bg-primary/10 backdrop-blur-sm transition-colors rounded-full;
+}
+
+.dark .badge-telekom {
+    @apply bg-primary/20 hover:bg-primary/30;
+}
+
+/* Custom Utilities */
+.glass-panel {
+    @apply bg-card/80 backdrop-blur-lg border border-white/10 dark:border-white/5;
+}
