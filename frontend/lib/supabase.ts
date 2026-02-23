@@ -7,11 +7,18 @@ export function createClient() {
     // Check if we are in build time or have missing variables
     if (!url || !anonKey || url === "undefined") {
         console.warn("Building: Using mock Supabase client due to missing environment variables.");
+        const throwMissingEnv = async () => {
+            return { data: null, error: { message: "Supabase környezeti változók hiányoznak. Kérlek ellenőrizd a beállításokat." } };
+        };
         return {
             auth: {
                 getSession: async () => ({ data: { session: null }, error: null }),
                 onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
                 getUser: async () => ({ data: { user: null }, error: null }),
+                signInWithPassword: throwMissingEnv,
+                signUp: throwMissingEnv,
+                signOut: throwMissingEnv,
+                resetPasswordForEmail: throwMissingEnv,
             },
             from: () => ({
                 select: () => ({

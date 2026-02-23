@@ -1,11 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+const throwMissingEnv = async () => {
+    return { data: null, error: { message: "Supabase környezeti változók hiányoznak a szerveren. Kérlek ellenőrizd a beállításokat." } };
+};
+
 const mockSupabase = {
     auth: {
         getSession: async () => ({ data: { session: null }, error: null }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
         getUser: async () => ({ data: { user: null }, error: null }),
+        signInWithPassword: throwMissingEnv,
+        signUp: throwMissingEnv,
+        signOut: throwMissingEnv,
+        resetPasswordForEmail: throwMissingEnv,
     },
     from: () => ({
         select: () => ({
