@@ -17,7 +17,6 @@ import {
     Calendar,
     AlertCircle,
     TrendingUp,
-    Activity,
     Loader2
 } from "lucide-react";
 import Link from "next/link";
@@ -52,50 +51,7 @@ interface MenteeDash {
     past_sessions: { session_title: string; start_time: string; duration_min: number }[];
 }
 
-function ActivityHeatmap() {
-    // Generate a 26-week by 7-day grid to simulate a network activity layout
-    const weeks = Array.from({ length: 26 });
-    return (
-        <TechCard delay={0.4} className="mt-8">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" />
-                    Hálózati Aktivitás (Hőtérkép)
-                </CardTitle>
-                <CardDescription>Elmúlt félév mentorálási aktivitásai</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex gap-[3px] overflow-x-auto pb-4">
-                    {weeks.map((_, i) => (
-                        <div key={i} className="flex flex-col gap-[3px]">
-                            {Array.from({ length: 7 }).map((_, j) => {
-                                // Pseudo-random intensity based on position
-                                const n = Math.sin(i * j) * Math.cos(i + j);
-                                const intensity = Math.abs(n);
-                                return (
-                                    <motion.div
-                                        key={j}
-                                        initial={{ opacity: 0, scale: 0 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: (i * 7 + j) * 0.002 }}
-                                        className={`w-3.5 h-3.5 rounded-[2px] transition-colors duration-300 hover:scale-125 hover:z-10 relative cursor-pointer ${intensity > 0.8
-                                            ? 'bg-primary'
-                                            : intensity > 0.5
-                                                ? 'bg-primary/60'
-                                                : intensity > 0.2
-                                                    ? 'bg-primary/30'
-                                                    : 'bg-primary/10'
-                                            }`}
-                                    />
-                                );
-                            })}
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </TechCard>
-    );
-}
+
 
 export default function DashboardPage() {
     const { profile } = useAuth();
@@ -236,8 +192,6 @@ function MentorDashboard() {
                     )}
                 </CardContent>
             </TechCard>
-
-            <ActivityHeatmap />
         </motion.div>
     );
 }
@@ -361,8 +315,6 @@ function MenteeDashboard() {
                     </TechCard>
                 )}
             </div>
-
-            <ActivityHeatmap />
         </motion.div>
     );
 }
