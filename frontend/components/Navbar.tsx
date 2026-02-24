@@ -70,8 +70,8 @@ export function Navbar() {
 
     const handleSignOut = async () => {
         await signOut();
-        router.push("/login");
-        router.refresh();
+        // Hard redirect to force full page reload & cookie clearing
+        window.location.href = "/login";
     };
 
     const initials = profile?.full_name
@@ -212,7 +212,7 @@ export function Navbar() {
                                 @{(profile as any)?.username || profile?.email}
                             </div>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleSignOut(); }} className="text-red-500">
+                            <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Kijelentkezés
                             </DropdownMenuItem>

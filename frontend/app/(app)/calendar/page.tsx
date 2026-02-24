@@ -81,7 +81,7 @@ export default function CalendarPage() {
 
     // Schedule Block Form State
     const [blockOpen, setBlockOpen] = useState(false);
-    const [blockForm, setBlockForm] = useState({ type: "work", title: "", start_time: "", end_time: "" });
+    const [blockForm, setBlockForm] = useState({ type: "shift", title: "", start_time: "", end_time: "" });
 
     const isMentor = profile?.role === "mentor";
 
@@ -197,33 +197,20 @@ export default function CalendarPage() {
                             <Dialog open={blockOpen} onOpenChange={setBlockOpen}>
                                 <DialogTrigger asChild>
                                     <MagneticButton className="h-8 px-4 text-xs font-bold tracking-widest uppercase">
-                                        Idő Blokkolása
+                                        Műszak Hozzáadása
                                     </MagneticButton>
                                 </DialogTrigger>
                                 <DialogContent className="glass-panel border-primary/20 bg-black/80 backdrop-blur-3xl">
-                                    <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-emerald-600 mb-4">
-                                        Saját Idő Szigetelése
+                                    <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-cyan-600 mb-4">
+                                        Műszak Rögzítése
                                     </DialogTitle>
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <label className="text-xs uppercase tracking-widest opacity-70">Típus</label>
-                                            <select
-                                                className="w-full input-telekom h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-sm"
-                                                value={blockForm.type}
-                                                onChange={e => setBlockForm({ ...blockForm, type: e.target.value })}
-                                            >
-                                                <option value="work">Munka 💼</option>
-                                                <option value="rest">Pihenő ☕</option>
-                                                <option value="vacation">Szabadság 🌴</option>
-                                                <option value="shift">Műszak 🏭</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest opacity-70">Megnevezés (Opcionális)</label>
                                             <input
-                                                className="w-full input-telekom h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-sm"
+                                                className="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50"
                                                 value={blockForm.title}
-                                                placeholder="Mivel telik?"
+                                                placeholder="Pl. délelőtti műszak"
                                                 onChange={e => setBlockForm({ ...blockForm, title: e.target.value })}
                                             />
                                         </div>
@@ -232,7 +219,7 @@ export default function CalendarPage() {
                                                 <label className="text-xs uppercase tracking-widest opacity-70">Kezdete</label>
                                                 <input
                                                     type="datetime-local"
-                                                    className="w-full input-telekom h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-xs font-mono"
+                                                    className="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-primary/50"
                                                     value={blockForm.start_time}
                                                     onChange={e => setBlockForm({ ...blockForm, start_time: e.target.value })}
                                                 />
@@ -241,7 +228,7 @@ export default function CalendarPage() {
                                                 <label className="text-xs uppercase tracking-widest opacity-70">Vége</label>
                                                 <input
                                                     type="datetime-local"
-                                                    className="w-full input-telekom h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-xs font-mono"
+                                                    className="w-full h-10 px-3 bg-black/40 border border-white/10 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-primary/50"
                                                     value={blockForm.end_time}
                                                     onChange={e => setBlockForm({ ...blockForm, end_time: e.target.value })}
                                                 />
