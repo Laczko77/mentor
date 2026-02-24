@@ -26,6 +26,7 @@ import {
     BookTemplate,
     BarChart3,
     ClipboardList,
+    ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -38,7 +39,8 @@ export function Navbar() {
 
     const isMentor = profile?.role === "mentor";
 
-    const navItems = [
+    // All nav items (for mobile)
+    const allNavItems = [
         { href: "/dashboard", label: "Vezérlőpult", icon: LayoutDashboard },
         { href: "/sessions", label: "Alkalmak", icon: Calendar },
         { href: "/calendar", label: "Naptár", icon: CalendarDays },
@@ -53,6 +55,19 @@ export function Navbar() {
             : []),
     ];
 
+    // Desktop grouped navigation
+    const sessionsGroup = [
+        { href: "/sessions", label: "Alkalmak", icon: Calendar },
+        { href: "/calendar", label: "Naptár", icon: CalendarDays },
+        { href: "/requests", label: "Kérelmek", icon: ClipboardList },
+    ];
+
+    const managementGroup = isMentor ? [
+        { href: "/mentees", label: "Mentoráltjaim", icon: Users },
+        { href: "/templates", label: "Sablonok", icon: BookTemplate },
+        { href: "/statistics", label: "Statisztika", icon: BarChart3 },
+    ] : [];
+
     const handleSignOut = async () => {
         await signOut();
         router.push("/login");
@@ -66,45 +81,112 @@ export function Navbar() {
         .toUpperCase()
         .slice(0, 2) || "?";
 
+    const isGroupActive = (items: { href: string }[]) =>
+        items.some((item) => pathname === item.href);
+
+    const activeGroupLabel = (items: { href: string; label: string }[]) =>
+        items.find((item) => pathname === item.href)?.label;
+
     return (
         <nav className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
                 {/* Logo */}
                 <Link href="/dashboard" className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                        <GraduationCap className="h-5 w-5 text-white" />
+                    <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
+                        <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                     </div>
-                    <span className="hidden text-lg font-bold tracking-tight sm:block">
+                    <span className="text-base sm:text-lg font-bold tracking-tight">
                         MentorTrack
                     </span>
                 </Link>
 
-                {/* Desktop Nav */}
+                {/* Desktop Nav - Grouped */}
                 <div className="hidden items-center gap-1 md:flex">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link key={item.href} href={item.href}>
+                    {/* Dashboard - standalone */}
+                    <Link href="/dashboard">
+                        <Button
+                            variant={pathname === "/dashboard" ? "secondary" : "ghost"}
+                            size="sm"
+                            className={`gap-2 ${pathname === "/dashboard" ? "bg-secondary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            <LayoutDashboard className="h-4 w-4" />
+                            Vezérlőpult
+                        </Button>
+                    </Link>
+
+                    {/* Sessions dropdown */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant={isGroupActive(sessionsGroup) ? "secondary" : "ghost"}
+                                size="sm"
+                                className={`gap-1.5 ${isGroupActive(sessionsGroup) ? "bg-secondary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                <Calendar className="h-4 w-4" />
+                                {activeGroupLabel(sessionsGroup) || "Foglalkozások"}
+                                <ChevronDown className="h-3 w-3 opacity-60" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                            {sessionsGroup.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <DropdownMenuItem key={item.href} asChild>
+                                        <Link href={item.href} className={`flex items-center gap-2 ${pathname === item.href ? "font-semibold text-primary" : ""}`}>
+                                            <Icon className="h-4 w-4" />
+                                            {item.label}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                );
+                            })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Hours - standalone */}
+                    <Link href="/hours">
+                        <Button
+                            variant={pathname === "/hours" ? "secondary" : "ghost"}
+                            size="sm"
+                            className={`gap-2 ${pathname === "/hours" ? "bg-secondary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            <Clock className="h-4 w-4" />
+                            Óraszám
+                        </Button>
+                    </Link>
+
+                    {/* Management dropdown (mentor only) */}
+                    {isMentor && managementGroup.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                                 <Button
-                                    variant={isActive ? "secondary" : "ghost"}
+                                    variant={isGroupActive(managementGroup) ? "secondary" : "ghost"}
                                     size="sm"
-                                    className={`gap-2 ${isActive
-                                        ? "bg-secondary font-semibold"
-                                        : "text-muted-foreground hover:text-foreground"
-                                        }`}
-                                    title={item.label}
+                                    className={`gap-1.5 ${isGroupActive(managementGroup) ? "bg-secondary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
                                 >
-                                    <Icon className="h-4 w-4" />
-                                    <span className="hidden lg:inline">{item.label}</span>
+                                    <Users className="h-4 w-4" />
+                                    {activeGroupLabel(managementGroup) || "Kezelés"}
+                                    <ChevronDown className="h-3 w-3 opacity-60" />
                                 </Button>
-                            </Link>
-                        );
-                    })}
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-48">
+                                {managementGroup.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <DropdownMenuItem key={item.href} asChild>
+                                            <Link href={item.href} className={`flex items-center gap-2 ${pathname === item.href ? "font-semibold text-primary" : ""}`}>
+                                                <Icon className="h-4 w-4" />
+                                                {item.label}
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    );
+                                })}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
 
                 {/* User Menu */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                     <NotificationBell />
                     <Badge
                         variant={isMentor ? "default" : "secondary"}
@@ -115,7 +197,7 @@ export function Navbar() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="gap-2 px-2">
-                                <Avatar className="h-8 w-8">
+                                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                                     <AvatarFallback className="bg-primary text-xs font-semibold text-white">
                                         {initials}
                                     </AvatarFallback>
@@ -127,7 +209,7 @@ export function Navbar() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
                             <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                                {profile?.email}
+                                @{(profile as any)?.username || profile?.email}
                             </div>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleSignOut(); }} className="text-red-500">
@@ -141,7 +223,7 @@ export function Navbar() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden"
+                        className="md:hidden h-9 w-9"
                         onClick={() => setMobileOpen(!mobileOpen)}
                     >
                         {mobileOpen ? (
@@ -153,28 +235,36 @@ export function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Nav */}
+            {/* Mobile Nav - Full screen overlay */}
             {mobileOpen && (
-                <div className="border-t bg-background px-4 pb-4 pt-2 md:hidden">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                onClick={() => setMobileOpen(false)}
-                            >
-                                <Button
-                                    variant={isActive ? "secondary" : "ghost"}
-                                    className="w-full justify-start gap-2"
+                <div className="fixed inset-0 top-[56px] z-50 bg-background/95 backdrop-blur-xl md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex flex-col px-4 py-4 gap-1">
+                        {allNavItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => setMobileOpen(false)}
                                 >
-                                    <Icon className="h-4 w-4" />
-                                    {item.label}
-                                </Button>
-                            </Link>
-                        );
-                    })}
+                                    <Button
+                                        variant={isActive ? "secondary" : "ghost"}
+                                        className={`w-full justify-start gap-3 h-12 text-base ${isActive ? 'bg-primary/10 text-primary font-semibold' : ''}`}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                        {item.label}
+                                    </Button>
+                                </Link>
+                            );
+                        })}
+                        <div className="mt-4 pt-4 border-t border-border/40">
+                            <Badge variant={isMentor ? "default" : "secondary"} className="mb-3">
+                                {isMentor ? "Mentor" : "Mentorált"}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground px-2">@{(profile as any)?.username || profile?.email}</p>
+                        </div>
+                    </div>
                 </div>
             )}
         </nav>

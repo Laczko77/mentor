@@ -8,7 +8,7 @@ export function createClient() {
     if (!url || !anonKey || url === "undefined") {
         console.warn("Building: Using mock Supabase client due to missing environment variables.");
         const throwMissingEnv = async () => {
-            return { data: null, error: { message: "Supabase környezeti változók hiányoznak. Kérlek ellenőrizd a beállításokat." } };
+            return { data: null, error: new Error("Supabase környezeti változók hiányoznak. Kérlek ellenőrizd a beállításokat a Vercel dashboardon (és/vagy az .env.local fájlban), majd indíts egy új deploy-t!") };
         };
         return {
             auth: {

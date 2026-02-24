@@ -5,6 +5,7 @@ export interface AuthenticatedUser {
     id: string;
     email: string;
     role: "mentor" | "mentee";
+    full_name: string;
 }
 
 export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
@@ -18,7 +19,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     const adminClient = createAdminClient();
     const { data: profile } = await adminClient
         .from("profiles")
-        .select("role")
+        .select("role, full_name")
         .eq("id", user.id)
         .single();
 
@@ -26,6 +27,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
         id: user.id,
         email: user.email || "",
         role: profile?.role as "mentor" | "mentee",
+        full_name: profile?.full_name || "",
     };
 }
 

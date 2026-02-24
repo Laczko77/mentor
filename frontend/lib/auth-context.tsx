@@ -10,9 +10,19 @@ import {
 import { createClient } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
 
+/**
+ * Converts a username to the internal fake email used by Supabase auth.
+ * Since this app uses username-based login (no real emails),
+ * we store users with `username@mentortrack.app` as their email.
+ */
+export function usernameToEmail(username: string): string {
+    return `${username.toLowerCase().trim()}@mentortrack.app`;
+}
+
 interface Profile {
     id: string;
     full_name: string;
+    username: string;
     email: string;
     role: "mentor" | "mentee";
     joined_at: string;
@@ -23,7 +33,7 @@ interface AuthContextType {
     session: Session | null;
     profile: Profile | null;
     loading: boolean;
-    signIn: (email: string, password: string) => Promise<void>;
+    signIn: (username: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -89,12 +99,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    const signIn = async (email: string, password: string) => {
+    const signIn = async (username: string, password: string) => {
+        // Convert username to internal fake email for Supabase auth
+        const email = usernameToEmail(username);
         const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
-        if (error) throw error;
+        if (error) {
+            // Show user-friendly error instead of "Invalid login credentials"
+            if (error.message.includes("Invalid login")) {
+                throw new Error("Hibás felhasználónév vagy jelszó");
+            }
+            throw error;
+        }
     };
 
     const signOut = async () => {

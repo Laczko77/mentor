@@ -40,7 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="min-h-screen relative z-0">
             <AnimatedBackground />
             <Navbar />
-            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+            <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8 lg:px-8 relative z-10">
                 <PageTransition>
                     {children}
                 </PageTransition>

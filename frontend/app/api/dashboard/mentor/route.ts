@@ -16,7 +16,7 @@ export async function GET() {
 
         if (menteesError) throw menteesError;
 
-        // Get completed hours from view
+        // Get completed hours from view (now monthly!)
         const { data: hours, error: hoursError } = await supabase
             .from("completed_hours")
             .select("*");
@@ -44,7 +44,7 @@ export async function GET() {
 
         // Build mentee hours summary
         const menteeHours = (mentees || []).map((m: any) => {
-            const required = calculateRequiredHours(m.joined_at);
+            const required = calculateRequiredHours(m.joined_at, m.required_hours);
             const completed = hoursMap.get(m.id) || 0;
             const remaining = Math.max(0, required - completed);
             const progress = required > 0 ? (completed / required) * 100 : 100;
@@ -61,11 +61,34 @@ export async function GET() {
             };
         });
 
+        // Get mentor's hour quota
+        const { data: mentorProfile } = await supabase
+            .from("profiles")
+            .select("monthly_hour_quota")
+            .eq("id", user.id)
+            .single();
+
+        const quota = mentorProfile?.monthly_hour_quota || 54;
+
+        // Get mentor's used hours this month
+        const { data: usedData } = await supabase
+            .from("completed_hours_mentor")
+            .select("used_hours")
+            .eq("mentor_id", user.id)
+            .single();
+
+        const usedHours = usedData?.used_hours ? parseFloat(usedData.used_hours) : 0;
+
         return NextResponse.json({
             total_mentees: mentees?.length || 0,
             pending_bookings: pendingCount || 0,
             upcoming_sessions: upcomingCount || 0,
             mentee_hours: menteeHours,
+            // Mentor quota info
+            monthly_quota: quota,
+            used_hours: Number(usedHours.toFixed(2)),
+            remaining_quota: Number(Math.max(0, quota - usedHours).toFixed(2)),
+            quota_usage_percent: Number(Math.min(100, (usedHours / quota) * 100).toFixed(1)),
         });
     } catch (error) {
         return handleApiError(error);

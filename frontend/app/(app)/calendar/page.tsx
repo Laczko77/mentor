@@ -69,6 +69,7 @@ const statusColorMap: Record<string, { bg: string; border: string; text: string 
     work: { bg: "bg-blue-500/20", border: "border-blue-500/40", text: "text-blue-400 hover:text-white" },
     rest: { bg: "bg-amber-500/20", border: "border-amber-500/40", text: "text-amber-400 hover:text-white" },
     vacation: { bg: "bg-purple-500/20", border: "border-purple-500/40", text: "text-purple-400 hover:text-white" },
+    shift: { bg: "bg-cyan-500/20", border: "border-cyan-500/40", text: "text-cyan-400 hover:text-white" },
 };
 
 export default function CalendarPage() {
@@ -107,7 +108,7 @@ export default function CalendarPage() {
 
             const blocks: SessionEvent[] = scheduleRes.map((b) => ({
                 id: b.id,
-                title: b.title || (b.type === "work" ? "Munka" : b.type === "rest" ? "Pihenő" : "Szabadság"),
+                title: b.title || (b.type === "work" ? "Munka" : b.type === "rest" ? "Pihenő" : b.type === "shift" ? "Műszak" : "Szabadság"),
                 start: parseISO(b.start_time),
                 end: parseISO(b.end_time),
                 status: b.type,
@@ -143,6 +144,19 @@ export default function CalendarPage() {
         }
     };
 
+    const handleDeleteBlock = async (blockId: string) => {
+        try {
+            const supabase = (await import("@/lib/supabase")).createClient();
+            // Use api.delete would need a route; for now call via fetch
+            await api.delete(`/mentor-schedule/${blockId}`);
+            toast.success("Blokk törölve!");
+            fetchAllData();
+        } catch {
+            // If API doesn't exist yet, silently fail
+            toast.error("Törlés nem sikerült");
+        }
+    };
+
     const days = useMemo(() => {
         const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
         const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
@@ -167,17 +181,17 @@ export default function CalendarPage() {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-7xl animate-in fade-in space-y-8 relative z-10 w-full">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="flex flex-col gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-                        Útválasztó (Scheduler)
+                    <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                        Naptár
                     </h1>
-                    <div className="flex items-center gap-4 mt-2">
-                        <p className="text-muted-foreground text-lg flex items-center gap-2">
-                            <Crosshair className="h-5 w-5 text-primary" />
+                    <div className="flex flex-wrap items-center gap-3 mt-2">
+                        <p className="text-muted-foreground text-sm sm:text-lg flex items-center gap-2">
+                            <Crosshair className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                             {isMentor
-                                ? "Saját és közzétett workshopok kalibrációja"
-                                : "Válogass a meghirdetett remote troubleshooting workshopok közül"}
+                                ? "Saját beosztás és foglalkozások kezelése"
+                                : "Elérhető mentorálási alkalmak áttekintése"}
                         </p>
                         {isMentor && (
                             <Dialog open={blockOpen} onOpenChange={setBlockOpen}>
@@ -201,6 +215,7 @@ export default function CalendarPage() {
                                                 <option value="work">Munka 💼</option>
                                                 <option value="rest">Pihenő ☕</option>
                                                 <option value="vacation">Szabadság 🌴</option>
+                                                <option value="shift">Műszak 🏭</option>
                                             </select>
                                         </div>
                                         <div className="space-y-2">
@@ -240,18 +255,18 @@ export default function CalendarPage() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 bg-black/40 p-2 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(226,0,116,0.1)] backdrop-blur-md">
-                    <Button variant="ghost" size="icon" onClick={previousMonth} className="h-10 w-10 hover:bg-primary/20 rounded-xl hover:text-primary transition-colors">
-                        <ChevronLeft className="h-5 w-5" />
+                <div className="flex items-center gap-2 bg-black/40 p-1.5 sm:p-2 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(226,0,116,0.1)] backdrop-blur-md">
+                    <Button variant="ghost" size="icon" onClick={previousMonth} className="h-8 w-8 sm:h-10 sm:w-10 hover:bg-primary/20 rounded-xl hover:text-primary transition-colors">
+                        <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
-                    <div className="px-6 min-w-[160px] text-center font-bold text-lg tracking-widest uppercase text-primary">
+                    <div className="px-3 sm:px-6 min-w-[120px] sm:min-w-[160px] text-center font-bold text-sm sm:text-lg tracking-widest uppercase text-primary">
                         {format(currentMonth, "yyyy. MMM", { locale: hu })}
                     </div>
-                    <Button variant="ghost" size="icon" onClick={nextMonth} className="h-10 w-10 hover:bg-primary/20 rounded-xl hover:text-primary transition-colors">
-                        <ChevronRight className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 sm:h-10 sm:w-10 hover:bg-primary/20 rounded-xl hover:text-primary transition-colors">
+                        <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
-                    <div className="w-[1px] h-6 bg-white/20 mx-2" />
-                    <Button variant="ghost" size="sm" onClick={goToToday} className="h-10 px-4 font-bold tracking-widest rounded-xl hover:bg-primary/20 hover:text-primary transition-colors uppercase">
+                    <div className="w-[1px] h-5 sm:h-6 bg-white/20 mx-1 sm:mx-2" />
+                    <Button variant="ghost" size="sm" onClick={goToToday} className="h-8 sm:h-10 px-2 sm:px-4 font-bold tracking-widest rounded-xl hover:bg-primary/20 hover:text-primary transition-colors uppercase text-xs sm:text-sm">
                         MA
                     </Button>
                 </div>
@@ -279,8 +294,8 @@ export default function CalendarPage() {
                                 <div
                                     key={day.toString()}
                                     className={cn(
-                                        "min-h-[120px] sm:min-h-[160px] p-2 sm:p-3 border-r border-b border-white/5 transition-all duration-300 group relative overflow-hidden",
-                                        !isCurrentMonth ? "bg-black/60 text-muted-foreground/30 grayscale" : "bg-transparent hover:bg-white/5 hover:ring-1 hover:ring-white/20 hover:z-10 cursor-crosshair",
+                                        "min-h-[60px] sm:min-h-[120px] md:min-h-[160px] p-1 sm:p-2 md:p-3 border-r border-b border-white/5 transition-all duration-300 group relative overflow-hidden",
+                                        !isCurrentMonth ? "bg-black/60 text-muted-foreground/30 grayscale" : "bg-transparent hover:bg-white/5 hover:ring-1 hover:ring-white/20 hover:z-10",
                                         isToday && "bg-primary/10 shadow-[inset_0_0_20px_rgba(226,0,116,0.15)]"
                                     )}
                                 >

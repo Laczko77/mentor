@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 const throwMissingEnv = async () => {
-    return { data: null, error: { message: "Supabase környezeti változók hiányoznak a szerveren. Kérlek ellenőrizd a beállításokat." } };
+    return { data: null, error: new Error("Supabase környezeti változók hiányoznak a szerveren. Kérlek ellenőrizd a beállításokat a Vercel dashboardon (és/vagy az .env fájlban), majd indíts egy új deploy-t!") };
 };
 
 const mockSupabase = {

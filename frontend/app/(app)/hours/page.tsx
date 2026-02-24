@@ -27,10 +27,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Clock, Download, Filter, Loader2, TrendingUp } from "lucide-react";
+import { Clock, Download, Filter, Loader2, TrendingUp, Pencil, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase";
+import { Progress } from "@/components/ui/progress";
 
 interface MenteeHours {
     mentee_id: string;
@@ -48,6 +52,10 @@ interface MentorDash {
     pending_bookings: number;
     upcoming_sessions: number;
     mentee_hours: MenteeHours[];
+    monthly_quota: number;
+    used_hours: number;
+    remaining_quota: number;
+    quota_usage_percent: number;
 }
 
 interface MenteeDash {
@@ -74,6 +82,9 @@ function MentorHours() {
     const [data, setData] = useState<MentorDash | null>(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
+    const [quotaOpen, setQuotaOpen] = useState(false);
+    const [newQuota, setNewQuota] = useState("");
+    const [quotaLoading, setQuotaLoading] = useState(false);
 
     useEffect(() => {
         api
@@ -95,6 +106,24 @@ function MentorHours() {
     }
 
     if (!data) return null;
+
+    const handleUpdateQuota = async () => {
+        const val = parseFloat(newQuota);
+        if (isNaN(val) || val < 0) return toast.error("Érvényes számot adj meg!");
+        setQuotaLoading(true);
+        try {
+            await api.put("/profiles/quota", { monthly_hour_quota: val });
+            toast.success("Órakeret frissítve!");
+            setQuotaOpen(false);
+            // Refetch data
+            const fresh = await api.get<MentorDash>("/dashboard/mentor");
+            setData(fresh);
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : "Hiba");
+        } finally {
+            setQuotaLoading(false);
+        }
+    };
 
     let filteredMentees = data.mentee_hours;
     if (filter === "completed") {
@@ -130,18 +159,21 @@ function MentorHours() {
         }
     };
 
+    const currentMonth = new Date().toLocaleString("hu-HU", { month: "long", year: "numeric" });
+    const quotaPercent = data.quota_usage_percent || 0;
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Óraszám áttekintés</h1>
-                    <p className="mt-1 text-muted-foreground">
-                        Mentoráltjaid óraszámainak részletes kimutatása
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Óraszám áttekintés</h1>
+                    <p className="mt-1 text-muted-foreground text-sm sm:text-base">
+                        {currentMonth} – havi kimutatás
                     </p>
                 </div>
                 <Button
                     variant="outline"
-                    className="gap-2"
+                    className="gap-2 shrink-0"
                     onClick={handleExportCSV}
                 >
                     <Download className="h-4 w-4" />
@@ -149,8 +181,49 @@ function MentorHours() {
                 </Button>
             </div>
 
+            {/* Mentor Quota Card */}
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Gauge className="h-5 w-5 text-primary" />
+                        Havi Órakeret
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => { setNewQuota(data.monthly_quota.toString()); setQuotaOpen(true); }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                        Módosítás
+                    </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p className="text-2xl sm:text-3xl font-bold text-primary">{data.used_hours}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Felhasznált</p>
+                        </div>
+                        <div>
+                            <p className="text-2xl sm:text-3xl font-bold">{data.monthly_quota}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Keret (óra)</p>
+                        </div>
+                        <div>
+                            <p className={`text-2xl sm:text-3xl font-bold ${data.remaining_quota < 10 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                {data.remaining_quota}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">Maradék</p>
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Progress value={quotaPercent} className="h-3" />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                            <span className="font-semibold">{quotaPercent}% felhasználva</span>
+                            {data.remaining_quota < 10 && (
+                                <span className="text-amber-500 font-semibold">⚠️ Alacsony keret!</span>
+                            )}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Summary Cards */}
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10">
                     <CardContent className="pt-6 text-center">
                         <p className="text-3xl font-bold text-emerald-500">
@@ -181,7 +254,7 @@ function MentorHours() {
 
             {/* Filter + Table */}
             <Card className="card-telekom">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <CardTitle className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-primary" />
                         Részletes kimutatás
@@ -202,63 +275,67 @@ function MentorHours() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Név</TableHead>
-                                <TableHead>Belépés</TableHead>
-                                <TableHead className="text-center">Kötelező</TableHead>
-                                <TableHead className="text-center">Teljesítve</TableHead>
-                                <TableHead className="text-center">Maradék</TableHead>
-                                <TableHead className="w-[200px]">Haladás</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredMentees.map((m) => (
-                                <TableRow key={m.mentee_id}>
-                                    <TableCell>
-                                        <div>
-                                            <p className="font-medium">{m.full_name}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {m.email}
-                                            </p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm">
-                                        {new Date(m.joined_at).toLocaleDateString("hu-HU")}
-                                    </TableCell>
-                                    <TableCell className="text-center font-medium">
-                                        {m.required_hours}h
-                                    </TableCell>
-                                    <TableCell className="text-center font-medium">
-                                        {m.completed_hours.toFixed(1)}h
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        {m.remaining_hours > 0 ? (
-                                            <span className="text-amber-500">
-                                                {m.remaining_hours.toFixed(1)}h
-                                            </span>
-                                        ) : (
-                                            <Badge
-                                                variant="outline"
-                                                className="bg-emerald-500/10 text-emerald-600"
-                                            >
-                                                ✓
-                                            </Badge>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <HoursProgress
-                                            completed={m.completed_hours}
-                                            required={m.required_hours}
-                                            size="sm"
-                                            showLabel={false}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <div className="overflow-x-auto -mx-6">
+                        <div className="min-w-[600px] px-6">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Név</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Belépés</TableHead>
+                                        <TableHead className="text-center">Kötelező</TableHead>
+                                        <TableHead className="text-center">Teljesítve</TableHead>
+                                        <TableHead className="text-center">Maradék</TableHead>
+                                        <TableHead className="w-[200px]">Haladás</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredMentees.map((m) => (
+                                        <TableRow key={m.mentee_id}>
+                                            <TableCell>
+                                                <div>
+                                                    <p className="font-medium">{m.full_name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {m.email}
+                                                    </p>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-sm hidden sm:table-cell">
+                                                {new Date(m.joined_at).toLocaleDateString("hu-HU")}
+                                            </TableCell>
+                                            <TableCell className="text-center font-medium">
+                                                {m.required_hours}h
+                                            </TableCell>
+                                            <TableCell className="text-center font-medium">
+                                                {m.completed_hours.toFixed(1)}h
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                {m.remaining_hours > 0 ? (
+                                                    <span className="text-amber-500">
+                                                        {m.remaining_hours.toFixed(1)}h
+                                                    </span>
+                                                ) : (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="bg-emerald-500/10 text-emerald-600"
+                                                    >
+                                                        ✓
+                                                    </Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <HoursProgress
+                                                    completed={m.completed_hours}
+                                                    required={m.required_hours}
+                                                    size="sm"
+                                                    showLabel={false}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
                     {filteredMentees.length === 0 && (
                         <p className="py-8 text-center text-muted-foreground">
                             Nincs mentorált a szűrők alapján
@@ -266,6 +343,34 @@ function MentorHours() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Quota Edit Dialog */}
+            <Dialog open={quotaOpen} onOpenChange={setQuotaOpen}>
+                <DialogContent className="glass-panel border-primary/20">
+                    <DialogHeader>
+                        <DialogTitle>Havi Órakeret Módosítása</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                        <p className="text-sm text-muted-foreground">
+                            Add meg a havi mentorálási órakeretét. Ez az érték határozza meg, hogy maximum hány órát tudsz az adott hónapban mentorlásra fordítani.
+                        </p>
+                        <div className="space-y-2">
+                            <Label>Új órakeret (óra)</Label>
+                            <Input
+                                type="number"
+                                className="input-telekom"
+                                value={newQuota}
+                                onChange={e => setNewQuota(e.target.value)}
+                                placeholder="54"
+                                min="0"
+                            />
+                        </div>
+                        <Button className="w-full btn-telekom" onClick={handleUpdateQuota} disabled={quotaLoading}>
+                            {quotaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mentés"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
@@ -295,12 +400,14 @@ function MenteeHours() {
 
     if (!data) return null;
 
+    const currentMonth = new Date().toLocaleString("hu-HU", { month: "long", year: "numeric" });
+
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Óraszámom</h1>
-                <p className="mt-1 text-muted-foreground">
-                    Saját mentorálási óráim áttekintése
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Óraszámom</h1>
+                <p className="mt-1 text-muted-foreground text-sm sm:text-base">
+                    {currentMonth} – saját mentorálási órák
                 </p>
             </div>
 
@@ -309,20 +416,20 @@ function MenteeHours() {
                 <CardContent className="space-y-6 pt-6">
                     <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                            <p className="text-4xl font-bold text-primary">
+                            <p className="text-2xl sm:text-4xl font-bold text-primary">
                                 {data.completed_hours.toFixed(1)}
                             </p>
-                            <p className="mt-1 text-sm text-muted-foreground">Teljesítve</p>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Teljesítve</p>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold">{data.required_hours}</p>
-                            <p className="mt-1 text-sm text-muted-foreground">Kötelező</p>
+                            <p className="text-2xl sm:text-4xl font-bold">{data.required_hours}</p>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Kötelező</p>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-amber-500">
+                            <p className="text-2xl sm:text-4xl font-bold text-amber-500">
                                 {data.remaining_hours.toFixed(1)}
                             </p>
-                            <p className="mt-1 text-sm text-muted-foreground">Maradék</p>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Maradék</p>
                         </div>
                     </div>
                     <HoursProgress
@@ -346,34 +453,38 @@ function MenteeHours() {
                 </CardHeader>
                 <CardContent>
                     {data.past_sessions.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Session</TableHead>
-                                    <TableHead>Dátum</TableHead>
-                                    <TableHead className="text-center">Időtartam</TableHead>
-                                    <TableHead>Mentor megjegyzés</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {data.past_sessions.map((s, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell className="font-medium">
-                                            {s.session_title}
-                                        </TableCell>
-                                        <TableCell className="text-sm">
-                                            {new Date(s.start_time).toLocaleDateString("hu-HU")}
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            {s.duration_min} perc
-                                        </TableCell>
-                                        <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                                            {s.mentor_note || "–"}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                        <div className="overflow-x-auto -mx-6">
+                            <div className="min-w-[500px] px-6">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Session</TableHead>
+                                            <TableHead>Dátum</TableHead>
+                                            <TableHead className="text-center">Időtartam</TableHead>
+                                            <TableHead className="hidden sm:table-cell">Mentor megjegyzés</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {data.past_sessions.map((s, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-medium">
+                                                    {s.session_title}
+                                                </TableCell>
+                                                <TableCell className="text-sm">
+                                                    {new Date(s.start_time).toLocaleDateString("hu-HU")}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {s.duration_min} perc
+                                                </TableCell>
+                                                <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground hidden sm:table-cell">
+                                                    {s.mentor_note || "–"}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
                     ) : (
                         <p className="py-8 text-center text-muted-foreground">
                             Még nincsenek lezárt foglalásaid

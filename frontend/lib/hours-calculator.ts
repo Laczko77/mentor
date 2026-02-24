@@ -1,12 +1,22 @@
 import { addMonths, isBefore, parseISO } from "date-fns";
 
 /**
- * Calculates the required mentoring hours based on tenure.
- * Logic:
- * - < 3 months at the company: 12 hours
- * - >= 3 months: 4 hours
+ * Returns the required mentoring hours for a mentee.
+ * Priority:
+ * 1. If `overrideHours` is set (mentor manually configured), use that
+ * 2. Otherwise auto-calculate from tenure:
+ *    - < 3 months at the company: 12 hours
+ *    - >= 3 months: 4 hours
  */
-export function calculateRequiredHours(joinedAt: string | Date | null | undefined): number {
+export function calculateRequiredHours(
+    joinedAt: string | Date | null | undefined,
+    overrideHours?: number | null
+): number {
+    // If mentor manually set the required hours, use that
+    if (overrideHours != null && overrideHours >= 0) {
+        return overrideHours;
+    }
+
     if (!joinedAt) return 12; // Default to 12 if no join date specified
 
     try {

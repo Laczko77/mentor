@@ -17,7 +17,7 @@ export async function GET() {
 
         if (profileError || !profile) throw new Error("Profile not found");
 
-        const required = calculateRequiredHours(profile.joined_at);
+        const required = calculateRequiredHours(profile.joined_at, profile.required_hours);
 
         // Get completed hours
         const { data: hours } = await supabase

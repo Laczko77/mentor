@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireAuth, handleApiError } from "@/lib/server-auth";
 import { addMinutes, differenceInMinutes, parseISO } from "date-fns";
+import { createNotification } from "@/lib/notifications";
 
 export async function PUT(
     request: NextRequest,
@@ -85,6 +86,17 @@ export async function PUT(
                 .eq("id", id);
             if (updErr) throw updErr;
         }
+
+        // Notify mentee about the decision
+        await createNotification(supabase, {
+            user_id: req.mentee_id,
+            type: status === "accepted" ? "session_request_accepted" : "session_request_rejected",
+            title: status === "accepted" ? "Időpont elfogadva ✅" : "Időpont elutasítva ❌",
+            message: status === "accepted"
+                ? `A mentorod elfogadta az időpontodat: ${req.title}`
+                : `A mentorod elutasította az időpontodat: ${req.title}`,
+            related_id: id,
+        });
 
         return NextResponse.json({ success: true, status });
     } catch (error) {

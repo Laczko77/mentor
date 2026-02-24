@@ -31,7 +31,7 @@ export async function GET() {
         let csvContent = "Név;Email;Belépés dátuma;Kötelező órák;Teljesített órák;Hátralévő órák;Teljesítés %\n";
 
         (mentees || []).forEach((m: any) => {
-            const required = calculateRequiredHours(m.joined_at);
+            const required = calculateRequiredHours(m.joined_at, m.required_hours);
             const completed = hoursMap.get(m.id) || 0;
             const remaining = Math.max(0, required - completed);
             const progress = required > 0 ? (completed / required) * 100 : 100;

@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const { signIn } = useAuth();
@@ -28,7 +28,7 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         try {
-            await signIn(email, password);
+            await signIn(username, password);
             toast.success("Sikeres bejelentkezés!");
             router.push("/dashboard");
         } catch (err: unknown) {
@@ -56,15 +56,16 @@ export default function LoginPage() {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">E-mail cím</Label>
+                            <Label htmlFor="username">Felhasználónév</Label>
                             <Input
-                                id="email"
-                                type="email"
-                                placeholder="nev@telekom.hu"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                id="username"
+                                type="text"
+                                placeholder="felhasznalonev"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 required
                                 className="h-11"
+                                autoComplete="username"
                             />
                         </div>
                         <div className="space-y-2">

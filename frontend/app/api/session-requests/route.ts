@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireAuth, handleApiError } from "@/lib/server-auth";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(request: NextRequest) {
     try {
@@ -56,6 +57,16 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (error) throw error;
+
+        // Notify mentor about the new session request
+        await createNotification(supabase, {
+            user_id: mentor_id,
+            type: "session_request_new",
+            title: "Új időpont kérelem",
+            message: `${user.full_name} időpontot javasolt: ${title}`,
+            related_id: data.id,
+        });
+
         return NextResponse.json(data, { status: 201 });
     } catch (error) {
         return handleApiError(error);

@@ -98,6 +98,9 @@ export function NotificationBell() {
         booking_rejected: "❌",
         session_cancelled: "🚫",
         hours_warning: "⚠️",
+        session_request_new: "📥",
+        session_request_accepted: "✅",
+        session_request_rejected: "❌",
     };
 
     const getLink = (n: Notification) => {
@@ -106,6 +109,9 @@ export function NotificationBell() {
         }
         if (n.related_id && (n.type === "booking_accepted" || n.type === "booking_rejected")) {
             return `/sessions/${n.related_id}`;
+        }
+        if (n.type?.startsWith("session_request_")) {
+            return `/requests`;
         }
         return null;
     };
