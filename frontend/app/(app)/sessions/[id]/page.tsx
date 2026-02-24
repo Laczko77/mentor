@@ -211,7 +211,7 @@ export default function SessionDetailPage() {
         );
     }
 
-    if (!session) return <div className="py-20 text-center">Session nem található</div>;
+    if (!session) return <div className="py-20 text-center">Alkalom nem található</div>;
 
     const start = new Date(session.start_time);
     const end = new Date(session.end_time);
@@ -341,7 +341,7 @@ export default function SessionDetailPage() {
             {!isMentor && alreadyBooked && (
                 <Card className="card-telekom">
                     <CardContent className="py-6 text-center text-muted-foreground">
-                        ✓ Már jelentkeztél erre a sessionre
+                        ✓ Már jelentkeztél erre az alkalomra
                     </CardContent>
                 </Card>
             )}
@@ -387,77 +387,81 @@ export default function SessionDetailPage() {
                     </CardHeader>
                     <CardContent>
                         {session.bookings.length > 0 ? (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Név</TableHead>
-                                        <TableHead>Státusz</TableHead>
-                                        <TableHead>Megjegyzés</TableHead>
-                                        <TableHead className="text-right">Műveletek</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {session.bookings.map((b) => (
-                                        <TableRow key={b.id}>
-                                            <TableCell>
-                                                <div>
-                                                    <p className="font-medium">{b.mentee_name}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {b.mentee_email}
-                                                    </p>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={
-                                                        bookingStatusMap[b.status]?.class || ""
-                                                    }
-                                                >
-                                                    {bookingStatusMap[b.status]?.label || b.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                                                {b.note || "–"}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {b.status === "pending" && (
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            size="sm"
+                            <div className="overflow-x-auto -mx-6">
+                                <div className="min-w-[500px] px-6">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Név</TableHead>
+                                                <TableHead>Státusz</TableHead>
+                                                <TableHead className="hidden sm:table-cell">Megjegyzés</TableHead>
+                                                <TableHead className="text-right">Műveletek</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {session.bookings.map((b) => (
+                                                <TableRow key={b.id}>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p className="font-medium">{b.mentee_name}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {b.mentee_email}
+                                                            </p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
                                                             variant="outline"
-                                                            className="h-8 gap-1 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-                                                            disabled={actionLoading === b.id}
-                                                            onClick={() =>
-                                                                handleBookingAction(b.id, "accepted")
+                                                            className={
+                                                                bookingStatusMap[b.status]?.class || ""
                                                             }
                                                         >
-                                                            {actionLoading === b.id ? (
-                                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                            ) : (
-                                                                <Check className="h-3.5 w-3.5" />
-                                                            )}
-                                                            Elfogad
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="h-8 gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                            disabled={actionLoading === b.id}
-                                                            onClick={() =>
-                                                                handleBookingAction(b.id, "rejected")
-                                                            }
-                                                        >
-                                                            <X className="h-3.5 w-3.5" />
-                                                            Elutasít
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                                            {bookingStatusMap[b.status]?.label || b.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground hidden sm:table-cell">
+                                                        {b.note || "–"}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {b.status === "pending" && (
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="h-8 gap-1 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                                                    disabled={actionLoading === b.id}
+                                                                    onClick={() =>
+                                                                        handleBookingAction(b.id, "accepted")
+                                                                    }
+                                                                >
+                                                                    {actionLoading === b.id ? (
+                                                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                                    ) : (
+                                                                        <Check className="h-3.5 w-3.5" />
+                                                                    )}
+                                                                    <span className="hidden sm:inline">Elfogad</span>
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="h-8 gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                                    disabled={actionLoading === b.id}
+                                                                    onClick={() =>
+                                                                        handleBookingAction(b.id, "rejected")
+                                                                    }
+                                                                >
+                                                                    <X className="h-3.5 w-3.5" />
+                                                                    <span className="hidden sm:inline">Elutasít</span>
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </div>
                         ) : (
                             <p className="py-8 text-center text-muted-foreground">
                                 Még nincs jelentkezés
@@ -473,7 +477,7 @@ export default function SessionDetailPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <FileText className="h-5 w-5 text-primary" />
-                            Session megjegyzések
+                            Alkalom megjegyzések
                         </CardTitle>
                         <CardDescription>
                             Feljegyzések az elfogadott mentoráltakhoz
@@ -580,7 +584,7 @@ export default function SessionDetailPage() {
                         onClick={handleDelete}
                     >
                         <Trash2 className="h-4 w-4" />
-                        Session törlése
+                        Alkalom törlése
                     </Button>
                 </div>
             )}

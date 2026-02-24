@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TechCard } from "@/components/ui/TechCard";
-import { MagneticButton } from "@/components/ui/MagneticButton";
+
 import { motion } from "framer-motion";
 
 interface SessionRequest {
@@ -159,10 +159,10 @@ export default function RequestsPage() {
                 {!isMentor && (
                     <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                         <DialogTrigger asChild>
-                            <MagneticButton className="gap-2">
+                            <Button className="gap-2 btn-telekom">
                                 <Plus className="h-5 w-5" />
                                 Új Időpont Javaslat
-                            </MagneticButton>
+                            </Button>
                         </DialogTrigger>
                         <DialogContent className="glass-panel border-primary/20">
                             <DialogHeader>

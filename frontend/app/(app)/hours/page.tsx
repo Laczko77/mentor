@@ -458,7 +458,7 @@ function MenteeHours() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Session</TableHead>
+                                            <TableHead>Alkalom</TableHead>
                                             <TableHead>Dátum</TableHead>
                                             <TableHead className="text-center">Időtartam</TableHead>
                                             <TableHead className="hidden sm:table-cell">Mentor megjegyzés</TableHead>

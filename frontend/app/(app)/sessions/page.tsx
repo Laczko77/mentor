@@ -63,7 +63,7 @@ export default function SessionsPage() {
         <div className="space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Sessionök</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Alkalmak</h1>
                     <p className="mt-1 text-muted-foreground">
                         {isMentor
                             ? "Meghirdetett mentorálási alkalmak"
@@ -74,7 +74,7 @@ export default function SessionsPage() {
                     <Link href="/sessions/new">
                         <Button className="gap-2 btn-telekom">
                             <Plus className="h-4 w-4" />
-                            Új session
+                            Új alkalom
                         </Button>
                     </Link>
                 )}
@@ -124,7 +124,7 @@ export default function SessionsPage() {
                 </div>
             ) : (
                 <div className="py-20 text-center text-muted-foreground">
-                    Nincsenek sessionök a szűrők alapján.
+                    Nincsenek alkalmak a szűrők alapján.
                 </div>
             )}
         </div>

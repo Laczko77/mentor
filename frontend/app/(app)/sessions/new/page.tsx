@@ -70,7 +70,7 @@ export default function NewSessionPage() {
                     recurrence_rule: recurrenceRule,
                     weeks,
                 });
-                toast.success(`${res.count} ismétlődő session létrehozva!`);
+                toast.success(`${res.count} ismétlődő alkalom létrehozva!`);
             } else {
                 await api.post("/sessions", {
                     title: form.title,
@@ -80,7 +80,7 @@ export default function NewSessionPage() {
                     max_slots: form.type === "group" ? form.max_slots : 1,
                     location_note: form.location_note || null,
                 });
-                toast.success("Session sikeresen létrehozva!");
+                toast.success("Alkalom sikeresen létrehozva!");
             }
 
             router.push("/sessions");
@@ -116,7 +116,7 @@ export default function NewSessionPage() {
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Új session</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Új alkalom</h1>
                     <p className="mt-1 text-muted-foreground">
                         Hirdess meg egy új mentorálási alkalmat
                     </p>
@@ -125,7 +125,7 @@ export default function NewSessionPage() {
 
             <Card className="card-telekom">
                 <CardHeader>
-                    <CardTitle>Session adatai</CardTitle>
+                    <CardTitle>Alkalom adatai</CardTitle>
                     <CardDescription>
                         A mentoráltjaid itt fogják látni és tudnak rá jelentkezni
                     </CardDescription>
@@ -244,7 +244,7 @@ export default function NewSessionPage() {
                                 <div className="flex items-center gap-2">
                                     <Repeat className="h-4 w-4 text-primary" />
                                     <span className="text-sm font-medium">
-                                        Ismétlődő session
+                                        Ismétlődő alkalom
                                     </span>
                                 </div>
                                 <Button
@@ -339,8 +339,8 @@ export default function NewSessionPage() {
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : null}
                             {isRecurring
-                                ? `${weeks} session létrehozása`
-                                : "Session létrehozása"}
+                                ? `${weeks} alkalom létrehozása`
+                                : "Alkalom létrehozása"}
                         </Button>
                     </form>
                 </CardContent>

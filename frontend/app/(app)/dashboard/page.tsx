@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { TechCard } from "@/components/ui/TechCard";
-import { MagneticButton } from "@/components/ui/MagneticButton";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 interface MenteeHours {
@@ -159,9 +159,9 @@ function MentorDashboard() {
                         </CardDescription>
                     </div>
                     <Link href="/hours">
-                        <MagneticButton variant="outline" className="px-4 py-2 mt-4 sm:mt-0">
+                        <Button variant="outline" className="px-4 py-2 mt-4 sm:mt-0">
                             Részletes elemzés
-                        </MagneticButton>
+                        </Button>
                     </Link>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -307,9 +307,9 @@ function MenteeDashboard() {
                         <CardContent className="py-12 text-center text-muted-foreground flex flex-col items-center gap-4">
                             <p className="text-lg">Nincs közelgő mentorálási alkalom.</p>
                             <Link href="/sessions">
-                                <MagneticButton>
+                                <Button className="btn-telekom">
                                     Alkalom keresése
-                                </MagneticButton>
+                                </Button>
                             </Link>
                         </CardContent>
                     </TechCard>

@@ -29,7 +29,7 @@ import {
     ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 
 export function Navbar() {
@@ -37,6 +37,23 @@ export function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [pathname]);
+
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [mobileOpen]);
 
     const isMentor = profile?.role === "mentor";
 
@@ -238,7 +255,7 @@ export function Navbar() {
 
             {/* Mobile Nav - Full screen overlay */}
             {mobileOpen && (
-                <div className="fixed inset-0 top-[56px] z-50 bg-background/95 backdrop-blur-xl md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="fixed inset-x-0 top-[56px] z-50 h-[calc(100dvh-56px)] bg-background md:hidden animate-in fade-in slide-in-from-top-2 duration-200 overflow-y-auto">
                     <div className="flex flex-col px-4 py-4 gap-1">
                         {allNavItems.map((item) => {
                             const Icon = item.icon;

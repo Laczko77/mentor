@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Loader2, Clock, ArrowLeft, ChevronRight, Pencil, UserX, UserPlus } from "lucide-react";
 import { TechCard } from "@/components/ui/TechCard";
-import { MagneticButton } from "@/components/ui/MagneticButton";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,10 +158,10 @@ export default function MenteesPage() {
                                 }
                             }}>
                                 <DialogTrigger asChild>
-                                    <MagneticButton className="gap-2">
+                                    <Button className="gap-2 btn-telekom">
                                         <UserPlus className="h-5 w-5" />
                                         Új Mentorált
-                                    </MagneticButton>
+                                    </Button>
                                 </DialogTrigger>
                                 <DialogContent className="glass-panel border-primary/20">
                                     <DialogHeader>

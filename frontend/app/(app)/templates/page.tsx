@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { TechCard } from "@/components/ui/TechCard";
-import { MagneticButton } from "@/components/ui/MagneticButton";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -169,7 +169,7 @@ export default function TemplatesPage() {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                    <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-2xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
                         Sablonok
                     </motion.h1>
                     <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-muted-foreground text-lg flex items-center gap-2">
@@ -180,10 +180,10 @@ export default function TemplatesPage() {
 
                 <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                     <DialogTrigger asChild>
-                        <MagneticButton className="gap-2 shadow-[0_0_15px_rgba(226,0,116,0.3)]">
+                        <Button className="gap-2 btn-telekom">
                             <Plus className="h-5 w-5" />
                             Új Sablon Létrehozása
-                        </MagneticButton>
+                        </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md glass-panel border border-primary/20 bg-black/80 backdrop-blur-2xl">
                         <DialogHeader>
@@ -293,7 +293,7 @@ export default function TemplatesPage() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
-                                "relative px-6 py-2.5 text-sm font-bold uppercase tracking-widest transition-colors rounded-lg z-10",
+                                "relative px-3 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider sm:tracking-widest transition-colors rounded-lg z-10",
                                 activeTab === tab.id ? "text-white" : "text-muted-foreground hover:text-white/80"
                             )}
                         >

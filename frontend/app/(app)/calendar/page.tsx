@@ -46,7 +46,7 @@ import {
 import { hu } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { TechCard } from "@/components/ui/TechCard";
-import { MagneticButton } from "@/components/ui/MagneticButton";
+
 import { motion } from "framer-motion";
 
 interface SessionEvent {
@@ -196,9 +196,9 @@ export default function CalendarPage() {
                         {isMentor && (
                             <Dialog open={blockOpen} onOpenChange={setBlockOpen}>
                                 <DialogTrigger asChild>
-                                    <MagneticButton className="h-8 px-4 text-xs font-bold tracking-widest uppercase">
+                                    <Button className="gap-2 btn-telekom h-8 px-4 text-xs font-bold tracking-widest uppercase">
                                         Műszak Hozzáadása
-                                    </MagneticButton>
+                                    </Button>
                                 </DialogTrigger>
                                 <DialogContent className="glass-panel border-primary/20 bg-black/80 backdrop-blur-3xl">
                                     <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-4">
@@ -319,7 +319,7 @@ export default function CalendarPage() {
                                                         <span className="truncate">{session.title}</span>
                                                     </div>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-72 p-4 glass-panel shadow-[0_0_30px_rgba(226,0,116,0.15)] border-primary/30 z-50 rounded-xl">
+                                                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-72 max-w-sm p-4 glass-panel shadow-[0_0_30px_rgba(226,0,116,0.15)] border-primary/30 z-50 rounded-xl">
                                                     <div className="space-y-4">
                                                         <div>
                                                             <h4 className="font-extrabold text-lg text-white leading-tight">{session.title}</h4>
@@ -363,16 +363,16 @@ export default function CalendarPage() {
             {/* Session Detail Glass Modal */}
             <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
                 <DialogContent className="sm:max-w-xl p-0 overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] glass-panel bg-black/80 rounded-2xl backdrop-blur-2xl">
-                    <div className="relative h-32 bg-gradient-to-br from-primary/30 to-black overflow-hidden pointer-events-none">
+                    <div className="relative h-20 sm:h-32 bg-gradient-to-br from-primary/30 to-black overflow-hidden pointer-events-none">
                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2007433_1px,transparent_1px),linear-gradient(to_bottom,#e2007433_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_100%,transparent_100%)]"></div>
-                        <div className="absolute -bottom-8 left-8">
-                            <div className="h-24 w-24 rounded-2xl bg-black/80 border border-primary/40 flex items-center justify-center shadow-[0_0_20px_rgba(226,0,116,0.3)] backdrop-blur-md">
-                                <Crosshair className="h-10 w-10 text-primary animate-[spin_10s_linear_infinite]" />
+                        <div className="absolute -bottom-8 left-4 sm:left-8">
+                            <div className="h-16 w-16 sm:h-24 sm:w-24 rounded-2xl bg-black/80 border border-primary/40 flex items-center justify-center shadow-[0_0_20px_rgba(226,0,116,0.3)] backdrop-blur-md">
+                                <Crosshair className="h-6 w-6 sm:h-10 sm:w-10 text-primary animate-[spin_10s_linear_infinite]" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="pt-14 px-8 pb-8 space-y-8">
+                    <div className="pt-10 sm:pt-14 px-4 sm:px-8 pb-4 sm:pb-8 space-y-6 sm:space-y-8">
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                             <div className="space-y-3">
                                 <Badge className={cn(
@@ -383,7 +383,7 @@ export default function CalendarPage() {
                                 )}>
                                     {selectedSession?.status === "open" ? "Nyitott" : selectedSession?.status === "closed" ? "Lezárt" : "Lemondva"}
                                 </Badge>
-                                <DialogTitle className="text-3xl font-black leading-tight text-white drop-shadow-md">
+                                <DialogTitle className="text-xl sm:text-3xl font-black leading-tight text-white drop-shadow-md">
                                     {selectedSession?.title}
                                 </DialogTitle>
                             </div>
@@ -430,9 +430,9 @@ export default function CalendarPage() {
                         <div className="pt-4 flex flex-col gap-3">
                             {!isMentor && selectedSession?.status === "open" && (
                                 <Link href={`/sessions/${selectedSession.id}/book`} className="w-full">
-                                    <MagneticButton className="w-full text-base tracking-widest uppercase">
+                                    <Button className="w-full btn-telekom text-base tracking-widest uppercase">
                                         Hely Foglalása Most
-                                    </MagneticButton>
+                                    </Button>
                                 </Link>
                             )}
 
