@@ -28,6 +28,7 @@ import {
     ClipboardList,
     ChevronDown,
 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 
@@ -92,11 +93,11 @@ export function Navbar() {
             <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
                 {/* Logo */}
                 <Link href="/dashboard" className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                        <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                    <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg overflow-hidden shadow-lg shadow-primary/20 bg-black/50 border border-primary/20">
+                        <Image src="/logo.png" alt="MentorTér Logo" width={36} height={36} className="object-cover" unoptimized />
                     </div>
                     <span className="text-base sm:text-lg font-bold tracking-tight">
-                        MentorTrack
+                        MentorTér
                     </span>
                 </Link>
 

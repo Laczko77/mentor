@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MentorTrack – Mentoring Management",
+  title: "MentorTér",
   description:
     "Belső mentorálási folyamatok kezelése: időpont-meghirdetés, jelentkezés, óraszámok nyomon követése",
 };

@@ -201,7 +201,7 @@ export default function CalendarPage() {
                                     </MagneticButton>
                                 </DialogTrigger>
                                 <DialogContent className="glass-panel border-primary/20 bg-black/80 backdrop-blur-3xl">
-                                    <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-cyan-600 mb-4">
+                                    <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-4">
                                         Műszak Rögzítése
                                     </DialogTitle>
                                     <div className="space-y-4">

@@ -13,7 +13,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { GraduationCap, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 
@@ -45,10 +46,10 @@ export default function LoginPage() {
 
             <Card className="relative w-full max-w-md border-border/40 bg-background/80 backdrop-blur-2xl card-telekom animate-premium-slide-up shadow-2xl z-10">
                 <CardHeader className="text-center">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                        <GraduationCap className="h-7 w-7 text-white" />
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-primary/20 bg-black/50 border border-primary/20">
+                        <Image src="/logo.png" alt="MentorTér Logo" width={56} height={56} className="object-cover" unoptimized />
                     </div>
-                    <CardTitle className="text-2xl font-bold">MentorTrack</CardTitle>
+                    <CardTitle className="text-2xl font-bold">MentorTér</CardTitle>
                     <CardDescription>
                         Jelentkezz be a mentorálási platformra
                     </CardDescription>
