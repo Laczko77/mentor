@@ -44,7 +44,7 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center relative z-0 px-4">
             <AnimatedBackground />
 
-            <Card className="relative w-full max-w-md border-border/40 bg-background/80 backdrop-blur-2xl card-telekom animate-premium-slide-up shadow-2xl z-10">
+            <Card className="relative w-full max-w-md border-border/40 bg-background/80 backdrop-blur-2xl animate-premium-slide-up shadow-2xl z-10">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-primary/20 bg-black/50 border border-primary/20">
                         <Image src="/logo.png" alt="MentorTér Logo" width={56} height={56} className="object-cover" unoptimized />
