@@ -79,7 +79,7 @@ function MentorDashboard() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_10px_rgba(226,0,116,0.6)]" />
-                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Rendszer szinkronizálása...</p>
+                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Betöltés...</p>
                 </div>
             </div>
         );
@@ -94,7 +94,7 @@ function MentorDashboard() {
                     Vezérlőpult
                 </motion.h1>
                 <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-muted-foreground text-lg">
-                    Hálózati áttekintés és technikai folyamatok
+                    Mentor áttekintés és mentoráltak haladása
                 </motion.p>
             </div>
 
@@ -139,7 +139,7 @@ function MentorDashboard() {
                         <div>
                             <p className="text-3xl font-black">{data.upcoming_sessions}</p>
                             <p className="text-sm tracking-wide text-muted-foreground uppercase pt-1">
-                                Közelgő session
+                                Közelgő alkalom
                             </p>
                         </div>
                     </CardContent>
@@ -152,7 +152,7 @@ function MentorDashboard() {
                     <div>
                         <CardTitle className="flex items-center gap-2 text-2xl">
                             <TrendingUp className="h-6 w-6 text-primary" />
-                            Átviteli Sebesség (Óraszámok)
+                            Mentoráltak Óraszámai
                         </CardTitle>
                         <CardDescription>
                             Mentoráltak haladási mutatói
@@ -187,7 +187,7 @@ function MentorDashboard() {
                     ))}
                     {data.mentee_hours.length === 0 && (
                         <p className="text-center text-muted-foreground py-10 italic">
-                            A hálózat üres. Nincsenek aktív kapcsolatok.
+                            Még nincsenek mentoráltjaid. Adj hozzá mentoráltakat a Kezelés menüben.
                         </p>
                     )}
                 </CardContent>
@@ -215,7 +215,7 @@ function MenteeDashboard() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_10px_rgba(226,0,116,0.6)]" />
-                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Rendszer szinkronizálása...</p>
+                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Betöltés...</p>
                 </div>
             </div>
         );
@@ -239,7 +239,7 @@ function MenteeDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-2xl">
                         <Clock className="h-6 w-6 text-primary" />
-                        Technikai Teljesítmény (Óraegyenleg)
+                        Óraegyenleg
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -248,7 +248,7 @@ function MenteeDashboard() {
                             <p className="text-4xl font-black text-primary drop-shadow-[0_0_8px_rgba(226,0,116,0.3)]">
                                 {data.completed_hours.toFixed(1)}
                             </p>
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">Letöltve</p>
+                            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">Teljesítve</p>
                         </div>
                         <div className="p-4 rounded-xl bg-background/50 border border-border/50 shadow-inner">
                             <p className="text-4xl font-black">{data.required_hours}</p>
@@ -275,7 +275,7 @@ function MenteeDashboard() {
             <div className="pt-4">
                 <h2 className="mb-6 text-2xl font-bold flex items-center gap-3">
                     <Calendar className="h-6 w-6 text-primary" />
-                    Ütemezett Kapcsolatok
+                    Közelgő Alkalmak
                 </h2>
                 {data.upcoming_sessions.length > 0 ? (
                     <div className="grid gap-6 sm:grid-cols-2">
@@ -294,8 +294,8 @@ function MenteeDashboard() {
                                             variant="outline"
                                         >
                                             {s.booking_status === "accepted"
-                                                ? "Szinkronizálva"
-                                                : "Csatlakozás..."}
+                                                ? "Elfogadva"
+                                                : "Függőben"}
                                         </Badge>
                                     </div>
                                 </CardContent>
@@ -305,10 +305,10 @@ function MenteeDashboard() {
                 ) : (
                     <TechCard delay={0.2}>
                         <CardContent className="py-12 text-center text-muted-foreground flex flex-col items-center gap-4">
-                            <p className="text-lg">A hálózat jelenleg csendes. Nincs betervezett kapcsolat.</p>
+                            <p className="text-lg">Nincs közelgő mentorálási alkalom.</p>
                             <Link href="/sessions">
                                 <MagneticButton>
-                                    Kapcsolat Létesítése (Foglalás)
+                                    Alkalom keresése
                                 </MagneticButton>
                             </Link>
                         </CardContent>

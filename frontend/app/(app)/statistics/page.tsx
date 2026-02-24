@@ -97,7 +97,7 @@ export default function StatisticsPage() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_10px_rgba(226,0,116,0.6)]" />
-                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Rendszer szinkronizálása...</p>
+                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Betöltés...</p>
                 </div>
             </div>
         );
@@ -159,7 +159,7 @@ export default function StatisticsPage() {
                         <p className="text-3xl font-bold text-primary">
                             {totalSessions}
                         </p>
-                        <p className="text-sm text-muted-foreground">Összes session</p>
+                        <p className="text-sm text-muted-foreground">Összes alkalom</p>
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10">
@@ -198,10 +198,10 @@ export default function StatisticsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <BarChart3 className="h-5 w-5 text-primary" />
-                        Havi session szám
+                        Havi alkalmak száma
                     </CardTitle>
                     <CardDescription>
-                        Egyéni vs. csoportos sessionök havi bontásban
+                        Egyéni vs. csoportos alkalmak havi bontásban
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

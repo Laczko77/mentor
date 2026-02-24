@@ -7,40 +7,37 @@ export async function GET() {
     try {
         const user = await requireMentor();
         const supabase = createAdminClient();
+        const nowIso = new Date().toISOString();
 
-        // Get all mentees
-        const { data: mentees, error: menteesError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("role", "mentee");
+        // Run all independent DB queries in parallel
+        const [
+            menteesResult,
+            hoursResult,
+            pendingResult,
+            upcomingResult,
+            mentorProfileResult,
+            usedHoursResult,
+        ] = await Promise.all([
+            supabase.from("profiles").select("*").eq("role", "mentee"),
+            supabase.from("completed_hours").select("*"),
+            supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
+            supabase.from("sessions").select("*", { count: "exact", head: true }).eq("mentor_id", user.id).gte("start_time", nowIso).neq("status", "cancelled"),
+            supabase.from("profiles").select("monthly_hour_quota").eq("id", user.id).single(),
+            supabase.from("completed_hours_mentor").select("used_hours").eq("mentor_id", user.id).single(),
+        ]);
 
-        if (menteesError) throw menteesError;
+        if (menteesResult.error) throw menteesResult.error;
+        if (hoursResult.error) throw hoursResult.error;
 
-        // Get completed hours from view (now monthly!)
-        const { data: hours, error: hoursError } = await supabase
-            .from("completed_hours")
-            .select("*");
-
-        if (hoursError) throw hoursError;
+        const mentees = menteesResult.data;
+        const hours = hoursResult.data;
 
         const hoursMap = new Map<string, number>(
             (hours || []).map((h: any) => [h.mentee_id, parseFloat(h.completed_hours)])
         );
 
-        // Get pending bookings count
-        const { count: pendingCount } = await supabase
-            .from("bookings")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "pending");
-
-        // Get upcoming sessions count
-        const nowIso = new Date().toISOString();
-        const { count: upcomingCount } = await supabase
-            .from("sessions")
-            .select("*", { count: "exact", head: true })
-            .eq("mentor_id", user.id)
-            .gte("start_time", nowIso)
-            .neq("status", "cancelled");
+        const pendingCount = pendingResult.count;
+        const upcomingCount = upcomingResult.count;
 
         // Build mentee hours summary
         const menteeHours = (mentees || []).map((m: any) => {
@@ -61,23 +58,8 @@ export async function GET() {
             };
         });
 
-        // Get mentor's hour quota
-        const { data: mentorProfile } = await supabase
-            .from("profiles")
-            .select("monthly_hour_quota")
-            .eq("id", user.id)
-            .single();
-
-        const quota = mentorProfile?.monthly_hour_quota || 54;
-
-        // Get mentor's used hours this month
-        const { data: usedData } = await supabase
-            .from("completed_hours_mentor")
-            .select("used_hours")
-            .eq("mentor_id", user.id)
-            .single();
-
-        const usedHours = usedData?.used_hours ? parseFloat(usedData.used_hours) : 0;
+        const quota = mentorProfileResult.data?.monthly_hour_quota || 54;
+        const usedHours = usedHoursResult.data?.used_hours ? parseFloat(usedHoursResult.data.used_hours) : 0;
 
         return NextResponse.json({
             total_mentees: mentees?.length || 0,

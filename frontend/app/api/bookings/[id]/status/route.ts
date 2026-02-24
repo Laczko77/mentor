@@ -12,6 +12,10 @@ export async function PUT(
         const body = await request.json();
         const supabase = createAdminClient();
 
+        if (!["accepted", "rejected"].includes(body.status)) {
+            return NextResponse.json({ detail: "Invalid status" }, { status: 400 });
+        }
+
         const { data: booking, error: bookingError } = await supabase
             .from("bookings")
             .select("*, sessions(title, mentor_id)")

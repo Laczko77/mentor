@@ -7,34 +7,25 @@ export async function GET() {
         const user = await requireMentor();
         const supabase = createAdminClient();
 
-        // 1. All mentor sessions
-        const { data: sessions, error: sessionsError } = await supabase
-            .from("sessions")
-            .select("id, start_time, type, status")
-            .eq("mentor_id", user.id);
+        // Run both queries in parallel
+        const [sessionsResult, bookingsResult] = await Promise.all([
+            supabase.from("sessions").select("id, start_time, type, status").eq("mentor_id", user.id),
+            supabase.from("bookings").select("session_id, status, sessions!inner(mentor_id)").eq("sessions.mentor_id", user.id).eq("status", "accepted"),
+        ]);
 
-        if (sessionsError) throw sessionsError;
+        if (sessionsResult.error) throw sessionsResult.error;
+        const sessions = sessionsResult.data || [];
 
-        const sessionIds = (sessions || []).map((s: any) => s.id);
-        let acceptedBySession: Record<string, number> = {};
+        // Build accepted bookings map
+        const acceptedBySession: Record<string, number> = {};
+        (bookingsResult.data || []).forEach((b: any) => {
+            acceptedBySession[b.session_id] = (acceptedBySession[b.session_id] || 0) + 1;
+        });
 
-        if (sessionIds.length > 0) {
-            // 2. All accepted bookings for those sessions
-            const { data: bookings } = await supabase
-                .from("bookings")
-                .select("session_id, status")
-                .in("session_id", sessionIds)
-                .eq("status", "accepted");
-
-            (bookings || []).forEach((b: any) => {
-                acceptedBySession[b.session_id] = (acceptedBySession[b.session_id] || 0) + 1;
-            });
-        }
-
-        // 3. Group by month
+        // Group by month
         const monthly: Record<string, any> = {};
-        (sessions || []).forEach((s: any) => {
-            const monthKey = s.start_time.substring(0, 7); // YYYY-MM
+        sessions.forEach((s: any) => {
+            const monthKey = s.start_time.substring(0, 7);
             if (!monthly[monthKey]) {
                 monthly[monthKey] = {
                     month: monthKey,

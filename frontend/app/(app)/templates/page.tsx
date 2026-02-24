@@ -30,9 +30,9 @@ interface Template {
 }
 
 const TABS = [
-    { id: "all", label: "Összes Protokoll" },
-    { id: "individual", label: "Egyéni (P2P)" },
-    { id: "group", label: "Csoportos (Multi-node)" },
+    { id: "all", label: "Összes sablon" },
+    { id: "individual", label: "Egyéni" },
+    { id: "group", label: "Csoportos" },
 ];
 
 export default function TemplatesPage() {
@@ -91,7 +91,7 @@ export default function TemplatesPage() {
                 ...form,
                 location_note: form.location_note || null,
             });
-            toast.success("Új protokoll sikeresen bejegyezve!");
+            toast.success("Új sablon sikeresen létrehozva!");
             setCreateOpen(false);
             setForm({
                 name: "",
@@ -110,10 +110,10 @@ export default function TemplatesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Biztosan törlöd a protokollt a központi tárból?")) return;
+        if (!confirm("Biztosan törlöd ezt a sablont?")) return;
         try {
             await api.delete(`/templates/${id}`);
-            toast.success("Protokoll eltávolítva");
+            toast.success("Sablon törölve");
             fetchTemplates();
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Hiba");
@@ -127,7 +127,7 @@ export default function TemplatesPage() {
             await api.post(`/templates/${selectedTpl.id}`, {
                 start_time: startTime,
             });
-            toast.success("Új hálózati esemény publikálva!");
+            toast.success("Sablon sikeresen létrehozva!");
             setScheduleOpen(false);
             setStartTime("");
             setSelectedTpl(null);
@@ -158,7 +158,7 @@ export default function TemplatesPage() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_10px_rgba(226,0,116,0.6)]" />
-                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Rendszer szinkronizálása...</p>
+                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Betöltés...</p>
                 </div>
             </div>
         );
@@ -170,11 +170,11 @@ export default function TemplatesPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-                        Erőforrás Központ (Hub)
+                        Sablonok
                     </motion.h1>
                     <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-muted-foreground text-lg flex items-center gap-2">
                         <Server className="h-5 w-5 text-primary" />
-                        Technikai dokumentációk és automatizált session sablonok
+                        Foglalkozás sablonok kezelése
                     </motion.p>
                 </div>
 
@@ -182,7 +182,7 @@ export default function TemplatesPage() {
                     <DialogTrigger asChild>
                         <MagneticButton className="gap-2 shadow-[0_0_15px_rgba(226,0,116,0.3)]">
                             <Plus className="h-5 w-5" />
-                            Új Protokoll Bejegyzése
+                            Új Sablon Létrehozása
                         </MagneticButton>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md glass-panel border border-primary/20 bg-black/80 backdrop-blur-2xl">
@@ -313,8 +313,8 @@ export default function TemplatesPage() {
             {templates.length === 0 ? (
                 <TechCard delay={0.2} className="py-20 text-center flex flex-col items-center justify-center">
                     <BookTemplate className="h-20 w-20 text-muted-foreground/30 mb-6" />
-                    <h3 className="text-2xl font-bold text-white mb-2">Az adatbázis üres</h3>
-                    <p className="text-muted-foreground text-lg">Hozd létre az első sablont a hálózat inicializálásához.</p>
+                    <h3 className="text-2xl font-bold text-white mb-2">Még nincsenek sablonok</h3>
+                    <p className="text-muted-foreground text-lg">Hozd létre az első sablont az alkalmak gyors indításához.</p>
                 </TechCard>
             ) : filteredTemplates.length === 0 ? (
                 <div className="py-20 text-center">
@@ -437,8 +437,8 @@ export default function TemplatesPage() {
                                     <span className="text-primary font-bold">{selectedTpl.duration_min} perc</span>
                                 </div>
                                 <div className="flex justify-between pt-1">
-                                    <span className="text-muted-foreground uppercase tracking-wider">Topológia:</span>
-                                    <span className="text-emerald-400 font-bold">{selectedTpl.type === "individual" ? "Egyéni (P2P)" : "Csoportos"}</span>
+                                    <span className="text-muted-foreground uppercase tracking-wider">Típus:</span>
+                                    <span className="text-emerald-400 font-bold">{selectedTpl.type === "individual" ? "Egyéni" : "Csoportos"}</span>
                                 </div>
                             </div>
                         )}
@@ -452,7 +452,7 @@ export default function TemplatesPage() {
                             ) : (
                                 <Play className="mr-2 h-5 w-5" />
                             )}
-                            Szinkronizáció Indítása
+                            Alkalom létrehozása
                         </Button>
                     </div>
                 </DialogContent>

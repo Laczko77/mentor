@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { handleApiError } from "@/lib/server-auth";
+import { requireAuth, handleApiError } from "@/lib/server-auth";
 
 export async function GET() {
     try {
+        await requireAuth();
         const supabase = createAdminClient();
         const { data, error } = await supabase
             .from("profiles")

@@ -172,7 +172,7 @@ export default function CalendarPage() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_10px_rgba(226,0,116,0.6)]" />
-                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Rendszer szinkronizálása...</p>
+                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Betöltés...</p>
                 </div>
             </div>
         );
@@ -381,7 +381,7 @@ export default function CalendarPage() {
                                         selectedSession?.status === "closed" ? "bg-slate-500/20 text-slate-300 border border-slate-500/30" :
                                             "bg-red-500/20 text-red-400 border border-red-500/30"
                                 )}>
-                                    {selectedSession?.status === "open" ? "Nyitott Port" : selectedSession?.status === "closed" ? "Lezárt Port" : "Kapcsolat megszakítva"}
+                                    {selectedSession?.status === "open" ? "Nyitott" : selectedSession?.status === "closed" ? "Lezárt" : "Lemondva"}
                                 </Badge>
                                 <DialogTitle className="text-3xl font-black leading-tight text-white drop-shadow-md">
                                     {selectedSession?.title}
@@ -395,7 +395,7 @@ export default function CalendarPage() {
                                     <Clock className="h-6 w-6 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Szinkron Időpont</p>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Időpont</p>
                                     <p className="font-mono text-sm text-white mt-0.5">
                                         {selectedSession && format(selectedSession.start, "yyyy-MM-dd HH:mm")}
                                     </p>

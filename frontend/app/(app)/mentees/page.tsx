@@ -119,7 +119,7 @@ export default function MenteesPage() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_10px_rgba(226,0,116,0.6)]" />
-                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Rendszer szinkronizálása...</p>
+                    <p className="text-sm font-mono tracking-widest text-primary animate-pulse mt-4 uppercase">Betöltés...</p>
                 </div>
             </div>
         );

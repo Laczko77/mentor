@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { type, start_time, end_time, title } = body;
 
-        if (!["work", "rest", "vacation"].includes(type)) {
+        if (!["work", "rest", "vacation", "shift"].includes(type)) {
             throw new Error("Érvénytelen blokk típus");
         }
 
