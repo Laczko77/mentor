@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireAuth, handleApiError } from "@/lib/server-auth";
-import { addMinutes, differenceInMinutes, parseISO } from "date-fns";
+import { differenceInMinutes, parseISO } from "date-fns";
 import { createNotification } from "@/lib/notifications";
 
 export async function PUT(

@@ -120,8 +120,8 @@ export default function CalendarPage() {
             }));
 
             setSessions([...events, ...blocks]);
-        } catch (err) {
-            console.error("Failed to fetch sessions", err);
+        } catch {
+            // silent
         } finally {
             setLoading(false);
         }

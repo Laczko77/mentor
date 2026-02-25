@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import {
+    Card,
     CardContent,
     CardDescription,
     CardHeader,
@@ -12,7 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { HoursProgress } from "@/components/HoursProgress";
 import {
-    Clock,
     Users,
     Calendar,
     AlertCircle,
@@ -70,7 +70,7 @@ function MentorDashboard() {
         api
             .get<MentorDash>("/dashboard/mentor")
             .then(setData)
-            .catch(console.error)
+            .catch(() => { /* silent */ })
             .finally(() => setLoading(false));
     }, [profile]);
 
@@ -206,7 +206,7 @@ function MenteeDashboard() {
         api
             .get<MenteeDash>("/dashboard/mentee")
             .then(setData)
-            .catch(console.error)
+            .catch(() => { /* silent */ })
             .finally(() => setLoading(false));
     }, [profile]);
 
@@ -234,42 +234,34 @@ function MenteeDashboard() {
                 </motion.p>
             </div>
 
-            {/* Hours Balance Card */}
-            <TechCard delay={0.1}>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-2xl">
-                        <Clock className="h-6 w-6 text-primary" />
-                        Óraegyenleg
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid grid-cols-3 gap-6 text-center">
-                        <div className="p-4 rounded-xl bg-background/50 border border-border/50 shadow-inner">
-                            <p className="text-4xl font-black text-primary drop-shadow-[0_0_8px_rgba(226,0,116,0.3)]">
+            {/* Hours Balance Card - matches hours/page.tsx layout exactly */}
+            <Card className="bg-primary/5">
+                <CardContent className="space-y-6 pt-6">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p className="text-2xl sm:text-4xl font-bold text-primary">
                                 {data.completed_hours.toFixed(1)}
                             </p>
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">Teljesítve</p>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Teljesítve</p>
                         </div>
-                        <div className="p-4 rounded-xl bg-background/50 border border-border/50 shadow-inner">
-                            <p className="text-4xl font-black">{data.required_hours}</p>
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">Cél</p>
+                        <div>
+                            <p className="text-2xl sm:text-4xl font-bold">{data.required_hours}</p>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Kötelező</p>
                         </div>
-                        <div className="p-4 rounded-xl bg-background/50 border border-border/50 shadow-inner">
-                            <p className="text-4xl font-black text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                        <div>
+                            <p className="text-2xl sm:text-4xl font-bold text-amber-500">
                                 {data.remaining_hours.toFixed(1)}
                             </p>
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">Hátralévő</p>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Maradék</p>
                         </div>
                     </div>
-                    <div className="pt-4">
-                        <HoursProgress
-                            completed={data.completed_hours}
-                            required={data.required_hours}
-                            size="lg"
-                        />
-                    </div>
+                    <HoursProgress
+                        completed={data.completed_hours}
+                        required={data.required_hours}
+                        size="lg"
+                    />
                 </CardContent>
-            </TechCard>
+            </Card>
 
             {/* Upcoming Sessions */}
             <div className="pt-4">

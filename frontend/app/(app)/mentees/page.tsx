@@ -49,7 +49,7 @@ export default function MenteesPage() {
     const fetchMentees = () => {
         api.get<Profile[]>("/profiles")
             .then((data) => setMentees(data))
-            .catch(console.error)
+            .catch(() => { /* silent */ })
             .finally(() => setLoading(false));
     };
 

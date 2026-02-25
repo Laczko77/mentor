@@ -46,8 +46,8 @@ export default function SessionsPage() {
                 `/sessions${query ? `?${query}` : ""}`
             );
             setSessions(data);
-        } catch (err) {
-            console.error(err);
+        } catch {
+            // silent
         } finally {
             setLoading(false);
         }

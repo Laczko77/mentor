@@ -1,19 +1,35 @@
 "use client";
 
 import { motion } from "framer-motion";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export const AnimatedBackground = () => {
     const [mounted, setMounted] = useState(false);
+    // remountKey forces a full re-render of animations when tab becomes visible again.
+    // This is necessary because Framer Motion animations with repeat:Infinity and
+    // opacity ending at 0 get frozen at opacity:0 by the browser's rAF throttling
+    // when the tab is hidden, causing a grey screen on return.
+    const [remountKey, setRemountKey] = useState(0);
+
+    const handleVisibilityChange = useCallback(() => {
+        if (document.visibilityState === "visible") {
+            setRemountKey((k) => k + 1);
+        }
+    }, []);
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [handleVisibilityChange]);
 
-    // Generate random nodes only after mount to avoid hydration mismatch
+    // Generate random nodes only after mount to avoid hydration mismatch.
+    // Memoized per remountKey so positions stay stable within a session but
+    // get fresh animation state after a tab-switch.
     const nodes = mounted ? Array.from({ length: 30 }).map((_, i) => {
-        const shapeTypes = ['circle', 'square', 'triangle'];
+        const shapeTypes = ['circle', 'square', 'triangle'] as const;
         return {
             id: i,
             x: Math.random() * 100,
@@ -22,12 +38,13 @@ export const AnimatedBackground = () => {
             duration: Math.random() * 20 + 15,
             delay: Math.random() * 5,
             type: shapeTypes[Math.floor(Math.random() * shapeTypes.length)],
+            xOffset: Math.random() * 100 - 50,
         };
     }) : [];
 
     return (
-        <div className="fixed inset-0 z-[-1] overflow-hidden bg-background pointer-events-none">
-            {/* Dynamic Grid: Slightly more visible magenta tint */}
+        <div key={remountKey} className="fixed inset-0 z-[-1] overflow-hidden bg-background pointer-events-none">
+            {/* Dynamic Grid */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#e200741a_1px,transparent_1px),linear-gradient(to_bottom,#e200741a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_30%,transparent_100%)] opacity-60"></div>
 
             {/* Glowing Orbs / Data Nodes (Various Shapes) */}
@@ -59,7 +76,7 @@ export const AnimatedBackground = () => {
                         }}
                         animate={{
                             y: [0, -200, 0],
-                            x: [0, Math.random() * 100 - 50, 0],
+                            x: [0, node.xOffset, 0],
                             opacity: [0.1, 0.8, 0.1],
                             rotate: node.type !== 'circle' ? [0, 180, 360] : 0,
                         }}
@@ -78,7 +95,7 @@ export const AnimatedBackground = () => {
             <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[140px]" />
             <div className="absolute top-[40%] left-[80%] w-[30%] h-[30%] rounded-full bg-white/5 blur-[120px]" />
 
-            {/* Enhanced Animated SVG paths (Data Lines) */}
+            {/* Animated SVG paths (Data Lines) */}
             <svg
                 className="absolute inset-0 w-full h-full opacity-50"
                 xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +146,6 @@ export const AnimatedBackground = () => {
                         delay: 3.5
                     }}
                 />
-                {/* Fast straight data streams */}
                 <motion.path
                     d="M 0 300 Q 800 150 2000 300"
                     fill="transparent"
@@ -146,7 +162,6 @@ export const AnimatedBackground = () => {
                         delay: 1
                     }}
                 />
-                {/* Fast data stream 2 - diagonal crossing */}
                 <motion.path
                     d="M -200 -200 L 2200 1200"
                     fill="transparent"
@@ -163,7 +178,6 @@ export const AnimatedBackground = () => {
                         delay: 2
                     }}
                 />
-                {/* Fast data stream 3 - bottom crossing */}
                 <motion.path
                     d="M -200 1200 L 2200 -200"
                     fill="transparent"

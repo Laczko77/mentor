@@ -90,7 +90,7 @@ function MentorHours() {
         api
             .get<MentorDash>("/dashboard/mentor")
             .then(setData)
-            .catch(console.error)
+            .catch(() => { /* silent */ })
             .finally(() => setLoading(false));
     }, []);
 
@@ -383,7 +383,7 @@ function MenteeHours() {
         api
             .get<MenteeDash>("/dashboard/mentee")
             .then(setData)
-            .catch(console.error)
+            .catch(() => { /* silent */ })
             .finally(() => setLoading(false));
     }, []);
 

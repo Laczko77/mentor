@@ -80,7 +80,7 @@ export default function StatisticsPage() {
                 setMonthly(m);
                 setTrends(t);
             })
-            .catch(console.error)
+            .catch(() => { /* silent */ })
             .finally(() => setLoading(false));
     }, [isMentor]);
 

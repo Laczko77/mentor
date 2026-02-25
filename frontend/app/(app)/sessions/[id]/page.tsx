@@ -102,8 +102,8 @@ export default function SessionDetailPage() {
         try {
             const data = await api.get<SessionDetail>(`/sessions/${sessionId}`);
             setSession(data);
-        } catch (err) {
-            console.error(err);
+        } catch {
+            // silent
         } finally {
             setLoading(false);
         }
