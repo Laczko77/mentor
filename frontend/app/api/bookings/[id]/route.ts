@@ -35,8 +35,8 @@ export async function DELETE(
         await supabase.from("notifications").insert({
             user_id: booking.sessions.mentor_id,
             type: "booking_cancelled",
-            title: "Booking lemondva",
-            message: `${user.email} lemondta a jelentkezését a(z) "${booking.sessions.title}" sessionre.`,
+            title: "Foglalás lemondva",
+            message: `${user.full_name} lemondta a jelentkezését a(z) "${booking.sessions.title}" alkalmra.`,
             related_id: booking.session_id,
         });
 

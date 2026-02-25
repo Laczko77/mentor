@@ -19,17 +19,32 @@ export async function POST(
             .eq("id", sessionId)
             .single();
 
-        if (!session) throw new Error("Session not found");
-        if (session.status !== "open") throw new Error("Session is not open for booking");
+        if (!session) throw new Error("Az alkalom nem található");
+        if (session.status !== "open") throw new Error("Ez az alkalom már nem foglalható");
 
-        // Check slots
+        // Check if mentee already has an active booking for this session
+        const { data: existingBooking } = await supabase
+            .from("bookings")
+            .select("id, status")
+            .eq("session_id", sessionId)
+            .eq("mentee_id", user.id)
+            .in("status", ["pending", "accepted"])
+            .maybeSingle();
+
+        if (existingBooking) {
+            throw new Error("Már jelentkeztél erre az alkalomra");
+        }
+
+        // Check available slots – only count active (pending/accepted) bookings
+        // Note: DB trigger also enforces this atomically to prevent race conditions
         const { count } = await supabase
             .from("bookings")
             .select("*", { count: "exact", head: true })
-            .eq("session_id", sessionId);
+            .eq("session_id", sessionId)
+            .in("status", ["pending", "accepted"]);
 
         if ((count || 0) >= session.max_slots) {
-            throw new Error("Session is full");
+            throw new Error("Az alkalom megtelt");
         }
 
         const { data, error } = await supabase
@@ -43,14 +58,24 @@ export async function POST(
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            // Handle race condition: another user booked the last slot between our check and insert
+            if (error.code === "P0001" && error.message?.includes("megtelt")) {
+                throw new Error("Az alkalom éppen megtelt, próbáld újra");
+            }
+            // Handle duplicate booking from simultaneous clicks (DB unique constraint)
+            if (error.code === "23505") {
+                throw new Error("Már jelentkeztél erre az alkalomra");
+            }
+            throw error;
+        }
 
         // Notify mentor
         await supabase.from("notifications").insert({
             user_id: session.mentor_id,
             type: "booking_new",
             title: "Új jelentkezés",
-            message: `${user.email} jelentkezett a(z) "${session.title}" sessionre.`,
+            message: `${user.full_name} jelentkezett a(z) "${session.title}" alkalmra.`,
             related_id: sessionId,
         });
 

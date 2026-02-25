@@ -5,6 +5,8 @@ import {
     useContext,
     useEffect,
     useState,
+    useRef,
+    useMemo,
     ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase";
@@ -46,68 +48,105 @@ const AuthContext = createContext<AuthContextType>({
     signOut: async () => { },
 });
 
+/** Fetch user profile with a timeout to prevent infinite loading on slow networks. */
+async function fetchProfileWithTimeout(
+    supabase: ReturnType<typeof createClient>,
+    userId: string,
+    timeoutMs = 8000
+): Promise<Profile | null> {
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => {
+            console.warn("Profile fetch timed out – resolving with null.");
+            resolve(null);
+        }, timeoutMs);
+
+        supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
+            .single()
+            .then(({ data }: { data: Profile | null }) => {
+                clearTimeout(timer);
+                resolve(data);
+            })
+            .catch((err: unknown) => {
+                clearTimeout(timer);
+                console.error("Profile fetch error:", err);
+                resolve(null);
+            });
+    });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
-    const supabase = createClient();
+
+    // Prevent double-initialization from onAuthStateChange firing on mount
+    const initialized = useRef(false);
+
+    // Memoize the supabase client so it's not recreated on every render
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
-        const getInitialSession = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
+        let isMounted = true;
 
-            setSession(session);
-            setUser(session?.user ?? null);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (_event: string, newSession: import("@supabase/supabase-js").Session | null) => {
+                if (!isMounted) return;
 
-            if (session?.user) {
-                const { data } = await supabase
-                    .from("profiles")
-                    .select("*")
-                    .eq("id", session.user.id)
-                    .single();
-                setProfile(data as Profile | null);
+                setSession(newSession);
+                setUser(newSession?.user ?? null);
+
+                if (newSession?.user) {
+                    // Fetch profile with error handling + timeout – never blocks forever
+                    const profileData = await fetchProfileWithTimeout(
+                        supabase,
+                        newSession.user.id
+                    );
+                    if (isMounted) {
+                        setProfile(profileData);
+                    }
+                } else {
+                    if (isMounted) {
+                        setProfile(null);
+                    }
+                }
+
+                // Always mark loading as done – even on error or timeout
+                if (isMounted && !initialized.current) {
+                    initialized.current = true;
+                    setLoading(false);
+                } else if (isMounted) {
+                    setLoading(false);
+                }
             }
+        );
 
-            setLoading(false);
+        // Safety net: if onAuthStateChange never fires (edge case), stop loading after 10s
+        const safetyTimer = setTimeout(() => {
+            if (isMounted && !initialized.current) {
+                console.warn("Auth initialization safety timeout triggered.");
+                initialized.current = true;
+                setLoading(false);
+            }
+        }, 10000);
+
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+            clearTimeout(safetyTimer);
         };
-
-        getInitialSession();
-
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-
-            if (session?.user) {
-                const { data } = await supabase
-                    .from("profiles")
-                    .select("*")
-                    .eq("id", session.user.id)
-                    .single();
-                setProfile(data as Profile | null);
-            } else {
-                setProfile(null);
-            }
-
-            setLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
     }, []);
 
     const signIn = async (username: string, password: string) => {
-        // Convert username to internal fake email for Supabase auth
         const email = usernameToEmail(username);
         const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
         if (error) {
-            // Show user-friendly error instead of "Invalid login credentials"
             if (error.message.includes("Invalid login")) {
                 throw new Error("Hibás felhasználónév vagy jelszó");
             }

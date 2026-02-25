@@ -9,23 +9,17 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const { loading, user, profile, signOut } = useAuth();
+    const { loading, user, profile } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading) {
-            if (!user) {
-                router.replace("/login");
-            } else if (user && !profile) {
-                // Fiók törölve lett, de a token még él
-                signOut().finally(() => {
-                    router.replace("/login");
-                });
-            }
+        if (!loading && !user) {
+            router.replace("/login");
         }
-    }, [loading, user, profile, router, signOut]);
+    }, [loading, user, router]);
 
-    if (loading || (!user || !profile)) {
+    // Show loading screen only while auth state is resolving
+    if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-2">
@@ -34,6 +28,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
             </div>
         );
+    }
+
+    // Not logged in – redirect is handled by useEffect above, render nothing briefly
+    if (!user || !profile) {
+        return null;
     }
 
     return (

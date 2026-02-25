@@ -87,9 +87,15 @@ export function Navbar() {
     ] : [];
 
     const handleSignOut = async () => {
-        await signOut();
-        // Hard redirect to force full page reload & cookie clearing
-        window.location.href = "/login";
+        try {
+            await signOut();
+        } catch (e) {
+            console.error("SignOut failed:", e);
+        } finally {
+            // Hard redirect to force full page reload & cookie clearing
+            // Always redirect, even if signOut throws a network error
+            window.location.href = "/login";
+        }
     };
 
     const initials = profile?.full_name

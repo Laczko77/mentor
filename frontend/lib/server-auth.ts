@@ -23,11 +23,15 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
         .eq("id", user.id)
         .single();
 
+    // If profile doesn't exist or failed to load, treat as unauthorized
+    // (prevents auth bypass via undefined role)
+    if (!profile) return null;
+
     return {
         id: user.id,
         email: user.email || "",
-        role: profile?.role as "mentor" | "mentee",
-        full_name: profile?.full_name || "",
+        role: profile.role as "mentor" | "mentee",
+        full_name: profile.full_name || "",
     };
 }
 
