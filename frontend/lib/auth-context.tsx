@@ -99,7 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setSession(newSession);
                 setUser(newSession?.user ?? null);
 
-                if (newSession?.user) {
+                // If user changed, or if we don't have a profile yet for this user:
+                const isNewUser = newSession?.user?.id !== user?.id;
+                const needsProfile = newSession?.user && (!profile || isNewUser);
+
+                if (needsProfile && newSession.user) {
                     // Fetch profile with error handling + timeout – never blocks forever
                     const profileData = await fetchProfileWithTimeout(
                         supabase,
@@ -108,7 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     if (isMounted) {
                         setProfile(profileData);
                     }
-                } else {
+                } else if (!newSession?.user) {
+                    // User logged out
                     if (isMounted) {
                         setProfile(null);
                     }
