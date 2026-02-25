@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Calendar, Clock, Check, X } from "lucide-react";
+import { Loader2, Plus, Calendar, Clock, Check, X, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TechCard } from "@/components/ui/TechCard";
 
@@ -97,7 +97,12 @@ export default function RequestsPage() {
             return toast.error("Minden mező kötelező!");
         }
         try {
-            await api.post("/session-requests", form);
+            const payload = {
+                ...form,
+                proposed_start_time: new Date(form.proposed_start_time).toISOString(),
+                proposed_end_time: new Date(form.proposed_end_time).toISOString(),
+            };
+            await api.post("/session-requests", payload);
             toast.success("Kérés sikeresen elküldve!");
             setCreateOpen(false);
             setForm({ mentor_id: "", title: "", proposed_start_time: "", proposed_end_time: "" });
@@ -110,9 +115,13 @@ export default function RequestsPage() {
     const handleAction = async (id: string, status: "accepted" | "rejected") => {
         setActionLoading(id);
         try {
-            const overrides = status === "accepted" && editedTimes[id]
-                ? { start_time: editedTimes[id].start_time, end_time: editedTimes[id].end_time }
-                : undefined;
+            let overrides = undefined;
+            if (status === "accepted" && editedTimes[id]) {
+                overrides = {
+                    start_time: new Date(editedTimes[id].start_time).toISOString(),
+                    end_time: new Date(editedTimes[id].end_time).toISOString(),
+                };
+            }
 
             await api.put(`/session-requests/${id}`, {
                 status,
@@ -122,6 +131,39 @@ export default function RequestsPage() {
             fetchRequests();
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Hiba");
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleEditRequest = async (id: string) => {
+        setActionLoading(id);
+        try {
+            if (!editedTimes[id]) return;
+            const payload = {
+                action: "update",
+                start_time: new Date(editedTimes[id].start_time).toISOString(),
+                end_time: new Date(editedTimes[id].end_time).toISOString(),
+            };
+            await api.put(`/session-requests/${id}`, payload);
+            toast.success("Kérelem sikeresen módosítva!");
+            fetchRequests();
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : "Hiba a módosítás során");
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleDeleteRequest = async (id: string) => {
+        if (!confirm("Biztosan törlöd a kérelmet?")) return;
+        setActionLoading(id);
+        try {
+            await api.delete(`/session-requests/${id}`);
+            toast.success("Kérelem sikeresen törölve!");
+            fetchRequests();
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : "Hiba a törlés során");
         } finally {
             setActionLoading(null);
         }
@@ -141,7 +183,11 @@ export default function RequestsPage() {
     );
 
     const formatDateForInput = (isoString: string) => {
-        return isoString.slice(0, 16);
+        if (!isoString) return "";
+        const d = new Date(isoString);
+        // Shift time by local timezone offset so ISO sliced string shows local time
+        const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+        return localDate.toISOString().slice(0, 16);
     };
 
     return (
@@ -167,6 +213,7 @@ export default function RequestsPage() {
                         <DialogContent className="glass-panel border-primary/20">
                             <DialogHeader>
                                 <DialogTitle>Időpont Igénylése</DialogTitle>
+                                <DialogDescription className="sr-only">Új időpont igénylése űrlap</DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 pt-4">
                                 <div className="space-y-2">
@@ -219,21 +266,21 @@ export default function RequestsPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {/* For non-pending or mentee view: show read-only time */}
-                                {(!isMentor || req.status !== "pending") && (
+                                {/* For non-pending requests: show read-only time */}
+                                {req.status !== "pending" && (
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <Calendar className="h-4 w-4" />
                                         <span>{new Date(req.proposed_start_time).toLocaleString("hu-HU")} - {new Date(req.proposed_end_time).toLocaleTimeString("hu-HU")}</span>
                                     </div>
                                 )}
 
-                                {/* For mentor + pending: inline editable time fields + action buttons */}
-                                {isMentor && req.status === "pending" && editedTimes[req.id] && (
+                                {/* For pending requests: inline editable time fields + action buttons */}
+                                {req.status === "pending" && editedTimes[req.id] && (
                                     <div className="space-y-4">
                                         <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
                                             <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
                                                 <Clock className="h-3.5 w-3.5" />
-                                                Módosíthatod az időpontot elfogadás előtt
+                                                {isMentor ? "Módosíthatod az időpontot elfogadás előtt" : "Módosíthatod az időpontot elfogadásig"}
                                             </p>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div className="space-y-1">
@@ -256,28 +303,54 @@ export default function RequestsPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                className="flex-1 bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30"
-                                                disabled={actionLoading === req.id}
-                                                onClick={() => handleAction(req.id, "accepted")}
-                                            >
-                                                {actionLoading === req.id ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <>
-                                                        <Check className="h-4 w-4 mr-2" /> Elfogadás
-                                                    </>
-                                                )}
-                                            </Button>
-                                            <Button
-                                                className="flex-1 bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                                                onClick={() => handleAction(req.id, "rejected")}
-                                                disabled={actionLoading === req.id}
-                                            >
-                                                <X className="h-4 w-4 mr-2" /> Elutasítás
-                                            </Button>
-                                        </div>
+
+                                        {isMentor ? (
+                                            <div className="flex flex-col sm:flex-row gap-2">
+                                                <Button
+                                                    className="flex-1 bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30"
+                                                    disabled={actionLoading === req.id}
+                                                    onClick={() => handleAction(req.id, "accepted")}
+                                                >
+                                                    {actionLoading === req.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Check className="h-4 w-4 mr-2" /> Elfogadás
+                                                        </>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    className="flex-1 bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                                                    onClick={() => handleAction(req.id, "rejected")}
+                                                    disabled={actionLoading === req.id}
+                                                >
+                                                    <X className="h-4 w-4 mr-2" /> Elutasítás
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col sm:flex-row gap-2">
+                                                <Button
+                                                    className="flex-1 btn-telekom"
+                                                    disabled={actionLoading === req.id}
+                                                    onClick={() => handleEditRequest(req.id)}
+                                                >
+                                                    {actionLoading === req.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Save className="h-4 w-4 mr-2" /> Mentés
+                                                        </>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    className="flex-1 bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                                                    onClick={() => handleDeleteRequest(req.id)}
+                                                    disabled={actionLoading === req.id}
+                                                >
+                                                    <Trash2 className="h-4 w-4 mr-2" /> Törlés
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </CardContent>

@@ -10,16 +10,6 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
 
-  // Enable experimental optimizations
-  experimental: {
-    // Optimize package imports — tree-shake large libraries
-    optimizePackageImports: [
-      "lucide-react",
-      "date-fns",
-      "recharts",
-      "framer-motion",
-    ],
-  },
 };
 
 export default nextConfig;

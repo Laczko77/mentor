@@ -12,10 +12,6 @@ export async function PUT(
         const user = await requireAuth();
         const id = (await params).id;
         const body = await request.json();
-        const status = body.status;
-
-        if (user.role !== "mentor") throw new Error("Csak mentor bírálhat el kéréseket");
-        if (!["accepted", "rejected"].includes(status)) throw new Error("Érvénytelen státusz");
 
         const supabase = createAdminClient();
 
@@ -27,8 +23,36 @@ export async function PUT(
             .single();
 
         if (reqErr || !req) throw new Error("A kérés nem található");
-        if (req.mentor_id !== user.id) throw new Error("Nincs jogosultságod");
         if (req.status !== "pending") throw new Error("A kérés már el van bírálva");
+
+        // Handle mentee edit
+        if (user.role === "mentee") {
+            if (req.mentee_id !== user.id) throw new Error("Nincs jogosultságod");
+            if (body.action !== "update") throw new Error("Érvénytelen művelet");
+
+            const finalStart = body.start_time || req.proposed_start_time;
+            const finalEnd = body.end_time || req.proposed_end_time;
+
+            const { error: updErr } = await supabase
+                .from("session_requests")
+                .update({
+                    proposed_start_time: finalStart,
+                    proposed_end_time: finalEnd,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", id);
+
+            if (updErr) throw updErr;
+
+            return NextResponse.json({ success: true });
+        }
+
+        // Handle mentor action
+        if (user.role !== "mentor") throw new Error("Nincs jogosultságod");
+        if (req.mentor_id !== user.id) throw new Error("Nincs jogosultságod a kérés bírálatához");
+
+        const status = body.status;
+        if (!["accepted", "rejected"].includes(status)) throw new Error("Érvénytelen státusz");
 
         // if accepted, create session and booking
         if (status === "accepted") {
@@ -99,6 +123,41 @@ export async function PUT(
         });
 
         return NextResponse.json({ success: true, status });
+    } catch (error) {
+        return handleApiError(error);
+    }
+}
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const user = await requireAuth();
+        const id = (await params).id;
+
+        if (user.role !== "mentee") throw new Error("Csak mentoráltak törölhetik a kérelmeiket");
+
+        const supabase = createAdminClient();
+
+        const { data: req, error: reqErr } = await supabase
+            .from("session_requests")
+            .select("mentee_id, status")
+            .eq("id", id)
+            .single();
+
+        if (reqErr || !req) throw new Error("A kérés nem található");
+        if (req.mentee_id !== user.id) throw new Error("Nincs jogosultságod");
+        if (req.status !== "pending") throw new Error("A kérés már el van bírálva, nem törölhető");
+
+        const { error: delErr } = await supabase
+            .from("session_requests")
+            .delete()
+            .eq("id", id);
+
+        if (delErr) throw delErr;
+
+        return NextResponse.json({ success: true });
     } catch (error) {
         return handleApiError(error);
     }

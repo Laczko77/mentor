@@ -12,17 +12,13 @@ import {
     User,
     Info,
     ArrowRight,
-    Crosshair
+    Crosshair,
+    X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CardContent } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
     Popover,
@@ -134,7 +130,12 @@ export default function CalendarPage() {
     const handleAddBlock = async () => {
         if (!blockForm.start_time || !blockForm.end_time) return toast.error("Állítsd be az időtartamot!");
         try {
-            await api.post("/mentor-schedule", blockForm);
+            const payload = {
+                ...blockForm,
+                start_time: new Date(blockForm.start_time).toISOString(),
+                end_time: new Date(blockForm.end_time).toISOString()
+            };
+            await api.post("/mentor-schedule", payload);
             toast.success("Blokk sikeresen hozzáadva!");
             setBlockOpen(false);
             setBlockForm({ type: "work", title: "", start_time: "", end_time: "" });
@@ -201,9 +202,14 @@ export default function CalendarPage() {
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="glass-panel border-primary/20 bg-black/80 backdrop-blur-3xl">
-                                    <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-4">
-                                        Műszak Rögzítése
-                                    </DialogTitle>
+                                    <DialogHeader>
+                                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-4">
+                                            Műszak Rögzítése
+                                        </DialogTitle>
+                                        <DialogDescription className="sr-only">
+                                            Új műszak hozzáadása a naptárhoz
+                                        </DialogDescription>
+                                    </DialogHeader>
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest opacity-70">Megnevezés (Opcionális)</label>
@@ -363,6 +369,10 @@ export default function CalendarPage() {
             {/* Session Detail Glass Modal */}
             <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
                 <DialogContent className="sm:max-w-xl p-0 overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] glass-panel bg-black/80 rounded-2xl backdrop-blur-2xl">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Esemény részletei</DialogTitle>
+                        <DialogDescription>A kiválasztott naptári esemény vagy műszak részletes adatai</DialogDescription>
+                    </DialogHeader>
                     <div className="relative h-20 sm:h-32 bg-gradient-to-br from-primary/30 to-black overflow-hidden pointer-events-none">
                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2007433_1px,transparent_1px),linear-gradient(to_bottom,#e2007433_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_100%,transparent_100%)]"></div>
                         <div className="absolute -bottom-8 left-4 sm:left-8">

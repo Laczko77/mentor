@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 interface Profile {
@@ -163,6 +163,9 @@ export default function MenteesPage() {
                             <DialogContent className="glass-panel border-primary/20">
                                 <DialogHeader>
                                     <DialogTitle>Új Mentorált Regisztrálása</DialogTitle>
+                                    <DialogDescription className="sr-only">
+                                        Új mentorált fiók létrehozása
+                                    </DialogDescription>
                                 </DialogHeader>
                                 {addSuccess ? (
                                     <div className="space-y-4 pt-4">
@@ -343,6 +346,9 @@ export default function MenteesPage() {
                 <DialogContent className="glass-panel border-primary/20">
                     <DialogHeader>
                         <DialogTitle>Mentorált Szerkesztése</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            Mentorált adatainak szerkesztése
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                         <div className="space-y-2">
@@ -379,6 +385,9 @@ export default function MenteesPage() {
                 <DialogContent className="glass-panel border-red-500/20">
                     <DialogHeader>
                         <DialogTitle className="text-red-500">Mentorált Deaktiválása</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            Mentorált fiókjának törlése vagy deaktiválása
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                         <p className="text-sm text-muted-foreground">

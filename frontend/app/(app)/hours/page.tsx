@@ -31,7 +31,7 @@ import { Clock, Download, Filter, Loader2, TrendingUp, Pencil, Gauge } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase";
 import { Progress } from "@/components/ui/progress";
@@ -349,6 +349,7 @@ function MentorHours() {
                 <DialogContent className="glass-panel border-primary/20">
                     <DialogHeader>
                         <DialogTitle>Havi Órakeret Módosítása</DialogTitle>
+                        <DialogDescription className="sr-only">Havi órakeret módosítása</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                         <p className="text-sm text-muted-foreground">

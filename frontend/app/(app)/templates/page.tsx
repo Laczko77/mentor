@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { BookTemplate, Calendar, Clock, Loader2, MapPin, Plus, Trash2, Users, User, Search, FileJson, Server, Play } from "lucide-react";
@@ -191,6 +191,9 @@ export default function TemplatesPage() {
                                 <FileJson className="h-6 w-6 text-primary" />
                                 Új Sablon Konfiguráció
                             </DialogTitle>
+                            <DialogDescription className="sr-only">
+                                Új sablon létrehozása űrlap
+                            </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-5 pt-4">
                             <div className="space-y-1">
@@ -415,6 +418,9 @@ export default function TemplatesPage() {
                             <Calendar className="h-6 w-6 text-primary" />
                             Esemény Publikálása
                         </DialogTitle>
+                        <DialogDescription className="sr-only">
+                            Esemény publikálása naptárba
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-6 pt-4">
                         <div className="space-y-2">
