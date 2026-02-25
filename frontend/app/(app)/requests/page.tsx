@@ -55,6 +55,25 @@ export default function RequestsPage() {
 
     const isMentor = profile?.role === "mentor";
 
+    const formatDateForInput = (isoString: string) => {
+        if (!isoString) return "";
+        try {
+            // Fix string format if it lacks a 'T'
+            const formattedString = isoString.includes(' ') ? isoString.replace(' ', 'T') : isoString;
+            const d = new Date(formattedString);
+
+            if (isNaN(d.getTime())) {
+                return formattedString.slice(0, 16);
+            }
+            // Shift time by local timezone offset so ISO sliced string shows local time
+            const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+            return localDate.toISOString().slice(0, 16);
+        } catch (e) {
+            console.error("Error formatting date:", e);
+            return isoString.slice(0, 16); // Fallback
+        }
+    };
+
     const fetchRequests = async () => {
         try {
             const data = await api.get<SessionRequest[]>("/session-requests");
@@ -70,8 +89,8 @@ export default function RequestsPage() {
                 }
             });
             setEditedTimes(times);
-        } catch {
-            // silent
+        } catch (err) {
+            console.error("Error fetching requests:", err);
         } finally {
             setLoading(false);
         }
@@ -181,14 +200,6 @@ export default function RequestsPage() {
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
     );
-
-    const formatDateForInput = (isoString: string) => {
-        if (!isoString) return "";
-        const d = new Date(isoString);
-        // Shift time by local timezone offset so ISO sliced string shows local time
-        const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-        return localDate.toISOString().slice(0, 16);
-    };
 
     return (
         <div className="mx-auto max-w-5xl space-y-8 z-10 relative animate-in fade-in duration-500">
