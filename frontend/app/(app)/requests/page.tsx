@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TechCard } from "@/components/ui/TechCard";
 
-import { motion } from "framer-motion";
+
 
 interface SessionRequest {
     id: string;
@@ -145,15 +145,15 @@ export default function RequestsPage() {
     };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-5xl space-y-8 z-10 relative">
+        <div className="mx-auto max-w-5xl space-y-8 z-10 relative animate-in fade-in duration-500">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
                 <div>
-                    <motion.h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                    <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 animate-in fade-in slide-in-from-left-4 duration-500">
                         {isMentor ? "Időpont Kérelmek" : "Saját Időpont Igényléseim"}
-                    </motion.h1>
-                    <motion.p className="mt-2 text-muted-foreground text-base sm:text-lg">
+                    </h1>
+                    <p className="mt-2 text-muted-foreground text-base sm:text-lg animate-in fade-in slide-in-from-left-4 duration-500 delay-150 fill-mode-both">
                         {isMentor ? "Mentoráltok által javasolt időpontok bírálata" : "Javasolj saját időpontot a mentornak"}
-                    </motion.p>
+                    </p>
                 </div>
 
                 {!isMentor && (
@@ -285,6 +285,6 @@ export default function RequestsPage() {
                     ))
                 )}
             </div>
-        </motion.div>
+        </div>
     );
 }

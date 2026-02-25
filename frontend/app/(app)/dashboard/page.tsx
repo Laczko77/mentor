@@ -22,7 +22,7 @@ import {
 import Link from "next/link";
 import { TechCard } from "@/components/ui/TechCard";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+
 
 interface MenteeHours {
     mentee_id: string;
@@ -88,14 +88,14 @@ function MentorDashboard() {
     if (!data) return null;
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 z-10 relative">
+        <div className="space-y-8 z-10 relative animate-in fade-in duration-500">
             <div>
-                <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 animate-in fade-in slide-in-from-left-4 duration-500">
                     Vezérlőpult
-                </motion.h1>
-                <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-muted-foreground text-lg">
+                </h1>
+                <p className="mt-2 text-muted-foreground text-lg animate-in fade-in slide-in-from-left-4 duration-500 delay-150 fill-mode-both">
                     Mentor áttekintés és mentoráltak haladása
-                </motion.p>
+                </p>
             </div>
 
             {/* Stats Cards */}
@@ -192,7 +192,7 @@ function MentorDashboard() {
                     )}
                 </CardContent>
             </TechCard>
-        </motion.div>
+        </div>
     );
 }
 
@@ -224,14 +224,14 @@ function MenteeDashboard() {
     if (!data) return null;
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 z-10 relative">
+        <div className="space-y-8 z-10 relative animate-in fade-in duration-500">
             <div>
-                <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 animate-in fade-in slide-in-from-left-4 duration-500">
                     Saját Központ
-                </motion.h1>
-                <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-muted-foreground text-lg">
+                </h1>
+                <p className="mt-2 text-muted-foreground text-lg animate-in fade-in slide-in-from-left-4 duration-500 delay-150 fill-mode-both">
                     Aktuális státusz és fejlesztési terv
-                </motion.p>
+                </p>
             </div>
 
             {/* Hours Balance Card - matches hours/page.tsx layout exactly */}
@@ -307,6 +307,6 @@ function MenteeDashboard() {
                     </TechCard>
                 )}
             </div>
-        </motion.div>
+        </div>
     );
 }

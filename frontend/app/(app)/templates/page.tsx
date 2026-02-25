@@ -165,17 +165,17 @@ export default function TemplatesPage() {
     }
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-6xl space-y-10 relative z-10 w-full mb-20 animate-in fade-in">
+        <div className="mx-auto max-w-6xl space-y-10 relative z-10 w-full mb-20 animate-in fade-in duration-500">
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-2xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                    <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 animate-in fade-in slide-in-from-left-4 duration-500">
                         Sablonok
-                    </motion.h1>
-                    <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-muted-foreground text-lg flex items-center gap-2">
+                    </h1>
+                    <p className="mt-2 text-muted-foreground text-lg flex items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-500 delay-150 fill-mode-both">
                         <Server className="h-5 w-5 text-primary" />
                         Foglalkozás sablonok kezelése
-                    </motion.p>
+                    </p>
                 </div>
 
                 <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -457,6 +457,6 @@ export default function TemplatesPage() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </motion.div>
+        </div>
     );
 }

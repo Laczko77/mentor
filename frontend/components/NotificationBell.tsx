@@ -40,7 +40,7 @@ export function NotificationBell() {
         setLoading(true);
         try {
             const data = await api.get<Notification[]>("/notifications");
-            setNotifications(data);
+            setNotifications(data.filter((n) => !n.is_read));
         } catch {
             // silent
         } finally {
@@ -73,9 +73,7 @@ export function NotificationBell() {
     const handleMarkRead = async (id: string) => {
         try {
             await api.put(`/notifications/${id}/read`, {});
-            setNotifications((prev) =>
-                prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-            );
+            setNotifications((prev) => prev.filter((n) => n.id !== id));
             setUnreadCount((c) => Math.max(0, c - 1));
         } catch {
             // silent
@@ -85,7 +83,7 @@ export function NotificationBell() {
     const handleMarkAllRead = async () => {
         try {
             await api.put("/notifications/read-all", {});
-            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+            setNotifications([]);
             setUnreadCount(0);
         } catch {
             // silent
@@ -135,7 +133,7 @@ export function NotificationBell() {
             </Button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-2 w-[calc(100vw-1.5rem)] sm:w-80 max-w-sm rounded-xl border border-border bg-background shadow-2xl shadow-black/20 z-50">
+                <div className="fixed left-4 right-4 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[calc(100vw-2rem)] sm:max-w-sm rounded-xl border border-border bg-background shadow-2xl shadow-black/20 z-50">
                     <div className="flex items-center justify-between border-b px-4 py-3">
                         <h3 className="text-sm font-semibold">Értesítések</h3>
                         {unreadCount > 0 && (

@@ -179,7 +179,7 @@ export default function CalendarPage() {
     }
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-7xl animate-in fade-in space-y-8 relative z-10 w-full">
+        <div className="mx-auto max-w-7xl animate-in fade-in space-y-8 relative z-10 w-full duration-500">
             {/* Header Area */}
             <div className="flex flex-col gap-4">
                 <div className="space-y-1">
@@ -458,6 +458,6 @@ export default function CalendarPage() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </motion.div>
+        </div>
     );
 }
