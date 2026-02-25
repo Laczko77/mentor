@@ -83,6 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Use refs to avoid stale closures in the onAuthStateChange listener
+    const userIdRef = useRef<string | null>(null);
+    const hasProfileRef = useRef<boolean>(false);
+
     // Prevent double-initialization from onAuthStateChange firing on mount
     const initialized = useRef(false);
 
@@ -93,29 +97,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let isMounted = true;
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (_event: string, newSession: import("@supabase/supabase-js").Session | null) => {
+            async (event: string, newSession: import("@supabase/supabase-js").Session | null) => {
                 if (!isMounted) return;
 
                 setSession(newSession);
                 setUser(newSession?.user ?? null);
 
-                // If user changed, or if we don't have a profile yet for this user:
-                const isNewUser = newSession?.user?.id !== user?.id;
-                const needsProfile = newSession?.user && (!profile || isNewUser);
+                const newUserId = newSession?.user?.id ?? null;
+                const isNewUser = newUserId !== userIdRef.current;
 
-                if (needsProfile && newSession.user) {
-                    // Fetch profile with error handling + timeout – never blocks forever
+                // If we don't have the profile for THIS user yet, we must fetch it.
+                // This avoids dropping the profile on TOKEN_REFRESH events or stale closure bugs.
+                const needsProfile = newUserId && (isNewUser || !hasProfileRef.current);
+
+                if (needsProfile && newSession && newSession.user) {
                     const profileData = await fetchProfileWithTimeout(
                         supabase,
                         newSession.user.id
                     );
                     if (isMounted) {
                         setProfile(profileData);
+                        userIdRef.current = newUserId;
+                        hasProfileRef.current = profileData !== null;
                     }
                 } else if (!newSession?.user) {
                     // User logged out
                     if (isMounted) {
                         setProfile(null);
+                        userIdRef.current = null;
+                        hasProfileRef.current = false;
                     }
                 }
 
