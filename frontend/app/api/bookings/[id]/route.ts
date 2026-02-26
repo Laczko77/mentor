@@ -24,8 +24,8 @@ export async function DELETE(
             throw new Error("Forbidden: Not your booking");
         }
 
-        if (booking.status !== "pending") {
-            throw new Error("Only pending bookings can be cancelled");
+        if (booking.status !== "pending" && booking.status !== "accepted") {
+            throw new Error("Csak függőben lévő vagy elfogadott jelentkezést lehet lemondani");
         }
 
         const { error } = await supabase.from("bookings").delete().eq("id", bookingId);

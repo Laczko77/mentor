@@ -10,8 +10,6 @@ import {
     Loader2,
     Clock,
     User,
-    Info,
-    ArrowRight,
     Crosshair,
     X
 } from "lucide-react";
@@ -73,7 +71,7 @@ export default function CalendarPage() {
     const [sessions, setSessions] = useState<SessionEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [selectedSession, setSelectedSession] = useState<SessionEvent | null>(null);
+    const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
     // Schedule Block Form State
     const [blockOpen, setBlockOpen] = useState(false);
@@ -85,7 +83,7 @@ export default function CalendarPage() {
         setLoading(true);
         try {
             const [sessionsRes, scheduleRes] = await Promise.all([
-                api.get<any[]>("/sessions"),
+                api.get<any[]>("/sessions?include_past=true"),
                 api.get<any[]>("/mentor-schedule" + (isMentor ? `?mentor_id=${profile.id}` : ""))
             ]);
 
@@ -142,19 +140,6 @@ export default function CalendarPage() {
             fetchAllData();
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Hiba történt");
-        }
-    };
-
-    const handleDeleteBlock = async (blockId: string) => {
-        try {
-            const supabase = (await import("@/lib/supabase")).createClient();
-            // Use api.delete would need a route; for now call via fetch
-            await api.delete(`/mentor-schedule/${blockId}`);
-            toast.success("Blokk törölve!");
-            fetchAllData();
-        } catch {
-            // If API doesn't exist yet, silently fail
-            toast.error("Törlés nem sikerült");
         }
     };
 
@@ -286,8 +271,9 @@ export default function CalendarPage() {
                             return (
                                 <div
                                     key={day.toString()}
+                                    onClick={() => setSelectedDay(day)}
                                     className={cn(
-                                        "min-h-[60px] sm:min-h-[120px] md:min-h-[160px] p-1 sm:p-2 md:p-3 border-r border-b border-white/5 transition-all duration-300 group relative overflow-hidden",
+                                        "min-h-[60px] sm:min-h-[120px] md:min-h-[160px] p-1 sm:p-2 md:p-3 border-r border-b border-white/5 transition-all duration-300 group relative overflow-hidden cursor-pointer",
                                         !isCurrentMonth ? "bg-black/60 text-muted-foreground/30 grayscale" : "bg-transparent hover:bg-white/5 hover:ring-1 hover:ring-white/20 hover:z-10",
                                         isToday && "bg-primary/10 shadow-[inset_0_0_20px_rgba(226,0,116,0.15)]"
                                     )}
@@ -311,51 +297,22 @@ export default function CalendarPage() {
 
                                     <div className="space-y-1.5 content-start overflow-hidden relative z-10">
                                         {daySessions.slice(0, 3).map((session) => (
-                                            <Popover key={session.id}>
-                                                <PopoverTrigger asChild>
-                                                    <div
-                                                        className={cn(
-                                                            "px-2.5 py-1.5 rounded flex items-center gap-2 text-[11px] font-bold border cursor-pointer truncate transition-all duration-300 hover:shadow-[0_0_10px_rgba(226,0,116,0.3)] hover:-translate-y-0.5",
-                                                            statusColorMap[session.status]?.bg,
-                                                            statusColorMap[session.status]?.border,
-                                                            statusColorMap[session.status]?.text
-                                                        )}
-                                                    >
-                                                        <span className="opacity-70 font-mono">{format(session.start, "HH:mm")}</span>
-                                                        <span className="truncate">{session.title}</span>
-                                                    </div>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-72 max-w-sm p-4 glass-panel shadow-[0_0_30px_rgba(226,0,116,0.15)] border-primary/30 z-50 rounded-xl">
-                                                    <div className="space-y-4">
-                                                        <div>
-                                                            <h4 className="font-extrabold text-lg text-white leading-tight">{session.title}</h4>
-                                                            <p className="text-xs text-primary font-mono mt-1 flex items-center gap-1 uppercase tracking-widest">
-                                                                <Clock className="h-3.5 w-3.5" />
-                                                                {format(session.start, "HH:mm")} - {format(session.end, "HH:mm")}
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center justify-between text-xs bg-black/40 rounded-lg p-2 border border-white/5">
-                                                            <span className="flex items-center gap-1.5 text-muted-foreground uppercase tracking-widest font-bold">
-                                                                <User className="h-3.5 w-3.5" /> Kapacitás:
-                                                            </span>
-                                                            <span className="font-mono text-white text-sm">
-                                                                {session.booked_count} / {session.max_slots}
-                                                            </span>
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            className="w-full h-10 text-xs font-bold gap-2 group/btn btn-telekom"
-                                                            onClick={() => setSelectedSession(session)}
-                                                        >
-                                                            Kapcsolódás <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                                                        </Button>
-                                                    </div>
-                                                </PopoverContent>
-                                            </Popover>
+                                            <div
+                                                key={session.id}
+                                                className={cn(
+                                                    "px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded flex items-center gap-1 sm:gap-2 text-[10px] sm:text-[11px] font-bold border truncate transition-all duration-300",
+                                                    statusColorMap[session.status]?.bg,
+                                                    statusColorMap[session.status]?.border,
+                                                    statusColorMap[session.status]?.text
+                                                )}
+                                            >
+                                                <span className="opacity-70 font-mono hidden sm:inline">{format(session.start, "HH:mm")}</span>
+                                                <span className="truncate">{session.title}</span>
+                                            </div>
                                         ))}
                                         {daySessions.length > 3 && (
-                                            <div className="text-[10px] font-bold text-primary/70 pl-2 tracking-wider mt-1">
-                                                +{daySessions.length - 3} ADATCSOMAG
+                                            <div className="text-[9px] sm:text-[10px] font-bold text-primary/70 pl-2 tracking-wider mt-1 uppercase">
+                                                +{daySessions.length - 3} további
                                             </div>
                                         )}
                                     </div>
@@ -366,105 +323,82 @@ export default function CalendarPage() {
                 </CardContent>
             </TechCard>
 
-            {/* Session Detail Glass Modal */}
-            <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
-                <DialogContent className="sm:max-w-xl p-0 overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] glass-panel bg-black/80 rounded-2xl backdrop-blur-2xl">
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>Esemény részletei</DialogTitle>
-                        <DialogDescription>A kiválasztott naptári esemény vagy műszak részletes adatai</DialogDescription>
+            {/* Day View Modal */}
+            <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
+                <DialogContent className="sm:max-w-md p-0 overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] glass-panel bg-black/80 rounded-2xl backdrop-blur-2xl">
+                    <DialogHeader className="p-6 pb-0">
+                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                            Események - {selectedDay ? format(selectedDay, "yyyy. MMMM d.", { locale: hu }) : ""}
+                        </DialogTitle>
+                        <DialogDescription className="sr-only">Napi események listája</DialogDescription>
                     </DialogHeader>
-                    <div className="relative h-20 sm:h-32 bg-gradient-to-br from-primary/30 to-black overflow-hidden pointer-events-none">
-                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2007433_1px,transparent_1px),linear-gradient(to_bottom,#e2007433_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_100%,transparent_100%)]"></div>
-                        <div className="absolute -bottom-8 left-4 sm:left-8">
-                            <div className="h-16 w-16 sm:h-24 sm:w-24 rounded-2xl bg-black/80 border border-primary/40 flex items-center justify-center shadow-[0_0_20px_rgba(226,0,116,0.3)] backdrop-blur-md">
-                                <Crosshair className="h-6 w-6 sm:h-10 sm:w-10 text-primary animate-[spin_10s_linear_infinite]" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-10 sm:pt-14 px-4 sm:px-8 pb-4 sm:pb-8 space-y-6 sm:space-y-8">
-                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                            <div className="space-y-3">
-                                <Badge className={cn(
-                                    "px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(0,0,0,0.5)]",
-                                    selectedSession?.status === "open" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-                                        selectedSession?.status === "closed" ? "bg-slate-500/20 text-slate-300 border border-slate-500/30" :
-                                            "bg-red-500/20 text-red-400 border border-red-500/30"
-                                )}>
-                                    {selectedSession?.status === "open" ? "Nyitott" : selectedSession?.status === "closed" ? "Lezárt" : "Lemondva"}
-                                </Badge>
-                                <DialogTitle className="text-xl sm:text-3xl font-black leading-tight text-white drop-shadow-md">
-                                    {selectedSession?.title}
-                                </DialogTitle>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex items-center gap-4 hover:border-primary/30 transition-colors">
-                                <div className="h-12 w-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
-                                    <Clock className="h-6 w-6 text-primary" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Időpont</p>
-                                    <p className="font-mono text-sm text-white mt-0.5">
-                                        {selectedSession && format(selectedSession.start, "yyyy-MM-dd HH:mm")}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex items-center gap-4 hover:border-primary/30 transition-colors">
-                                <div className="h-12 w-12 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-inner">
-                                    <User className="h-6 w-6 text-emerald-400" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Sávszélesség</p>
-                                    <p className="font-mono text-sm text-white mt-0.5">
-                                        {selectedSession?.booked_count} / {selectedSession?.max_slots} foglalt
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {selectedSession?.location_note && (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-[10px] text-primary font-bold uppercase tracking-widest">
-                                    <Info className="h-4 w-4" />
-                                    Csatlakozási Végpont (URL / Helyszín)
-                                </div>
-                                <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 text-sm font-mono text-white shadow-inner break-all">
-                                    {selectedSession.location_note}
-                                </div>
+                    <div className="p-4 sm:p-6 space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        {selectedDay && sessions.filter(s => isSameDay(s.start, selectedDay)).length > 0 ? (
+                            sessions.filter(s => isSameDay(s.start, selectedDay))
+                                .sort((a, b) => a.start.getTime() - b.start.getTime())
+                                .map(session => (
+                                    <div key={session.id} className={cn(
+                                        "p-4 rounded-xl border bg-black/40 relative overflow-hidden group transition-all",
+                                        statusColorMap[session.status]?.border || "border-white/10",
+                                        statusColorMap[session.status]?.bg || "bg-black/40"
+                                    )}>
+                                        <div className="flex justify-between items-start gap-4 mb-3">
+                                            <h4 className={cn(
+                                                "font-bold leading-tight",
+                                                statusColorMap[session.status]?.text || "text-white"
+                                            )}>
+                                                {session.title}
+                                            </h4>
+                                            <Badge className={cn(
+                                                "px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)] border",
+                                                session.status === "open" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+                                                    session.status === "closed" ? "bg-slate-500/20 text-slate-300 border-slate-500/30" :
+                                                        session.status === "cancelled" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                                                            session.type === "schedule_block" ? "bg-primary/20 text-primary border-primary/30" :
+                                                                "bg-white/10 text-white/70 border-white/20"
+                                            )}>
+                                                {session.status === "open" ? "Nyitott" :
+                                                    session.status === "closed" ? "Lezárt / Megtartott" :
+                                                        session.status === "cancelled" ? "Lemondva" :
+                                                            session.type === "schedule_block" ? "Műszak" : session.status}
+                                            </Badge>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3 mt-1 bg-black/40 p-3 rounded-lg border border-white/5">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                                                    <Clock className="h-3 w-3 text-primary" /> Időpont
+                                                </div>
+                                                <span className="font-mono text-sm text-white/90">
+                                                    {format(session.start, "HH:mm")} - {format(session.end, "HH:mm")}
+                                                </span>
+                                            </div>
+                                            {session.max_slots > 0 && (
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                                                        <User className="h-3 w-3 text-emerald-400" /> Kapacitás
+                                                    </div>
+                                                    <span className="font-mono text-sm text-white/90">
+                                                        {session.booked_count} / {session.max_slots} foglalt
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {session.type !== "schedule_block" && session.mentor_name && (
+                                            <div className="mt-3 text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded inline-block border border-white/10">
+                                                <span className="uppercase tracking-wider text-[10px] font-bold mr-1 opacity-70">Oktató:</span>
+                                                <span className="text-white/90 font-medium">{session.mentor_name}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                        ) : (
+                            <div className="text-center py-10 flex flex-col items-center gap-3 bg-black/40 rounded-xl border border-white/10">
+                                <CalendarIcon className="h-8 w-8 text-white/20" />
+                                <span className="text-muted-foreground/60 text-sm font-medium tracking-wide">
+                                    Nincsenek események vagy műszakok ezen a napon.
+                                </span>
                             </div>
                         )}
-
-                        <div className="pt-4 flex flex-col gap-3">
-                            {!isMentor && selectedSession?.status === "open" && (
-                                <Link href={`/sessions/${selectedSession.id}/book`} className="w-full">
-                                    <Button className="w-full btn-telekom text-base tracking-widest uppercase">
-                                        Hely Foglalása Most
-                                    </Button>
-                                </Link>
-                            )}
-
-                            {isMentor && (
-                                <div className="flex gap-3">
-                                    <Link href={`/sessions/${selectedSession?.id}/edit`} className="flex-1">
-                                        <Button variant="secondary" className="w-full h-12 font-bold rounded-xl bg-white/10 hover:bg-white/20 uppercase tracking-widest">
-                                            Újrakalibrálás
-                                        </Button>
-                                    </Link>
-                                    <Button variant="destructive" className="flex-1 h-12 font-bold rounded-xl bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30 uppercase tracking-widest">
-                                        Törlés
-                                    </Button>
-                                </div>
-                            )}
-
-                            <Link href={`/sessions/${selectedSession?.id}`} className="w-full">
-                                <Button variant="ghost" className="w-full h-12 font-bold tracking-widest uppercase text-muted-foreground hover:text-white">
-                                    Részletes Adatlap Megnyitása
-                                </Button>
-                            </Link>
-                        </div>
                     </div>
                 </DialogContent>
             </Dialog>

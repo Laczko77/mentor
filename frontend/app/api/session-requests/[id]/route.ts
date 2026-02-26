@@ -160,6 +160,13 @@ export async function DELETE(
         if (req.mentee_id !== user.id) throw new Error("Nincs jogosultságod");
         if (req.status !== "pending") throw new Error("A kérés már el van bírálva, nem törölhető");
 
+        // Delete associated notifications for the mentor to prevent dangling alerts
+        await supabase
+            .from("notifications")
+            .delete()
+            .eq("related_id", id)
+            .in("type", ["session_request_new"]);
+
         const { error: delErr } = await supabase
             .from("session_requests")
             .delete()

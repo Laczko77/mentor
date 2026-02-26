@@ -55,12 +55,18 @@ export async function GET() {
                 mentor_note: b.mentor_note || "",
             };
 
-            if (session?.end_time > nowIso) {
+            if (session?.start_time > nowIso) {
                 upcoming.push(entry);
             } else {
                 past.push(entry);
             }
         });
+
+        // Sort upcoming sessions: closest to current time first
+        upcoming.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+        // Sort past sessions: most recent past first
+        past.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 
         return NextResponse.json({
             required_hours: required,

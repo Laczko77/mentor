@@ -394,8 +394,38 @@ export default function SessionDetailPage() {
 
             {!isMentor && alreadyBooked && (
                 <Card className="card-telekom">
-                    <CardContent className="py-6 text-center text-muted-foreground">
-                        ✓ Már jelentkeztél erre az alkalomra
+                    <CardContent className="py-6 flex flex-col items-center justify-center gap-4 text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <Check className="h-5 w-5 text-emerald-500" />
+                            <span>Már jelentkeztél erre az alkalomra</span>
+                        </div>
+                        <Button
+                            variant="outline"
+                            className="gap-2 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            onClick={async () => {
+                                if (!confirm("Biztosan lemondod a jelentkezésed?")) return;
+                                const myBooking = session.bookings.find(b => b.mentee_id === profile?.id);
+                                if (!myBooking) return;
+                                setActionLoading("cancel_booking");
+                                try {
+                                    await api.delete(`/bookings/${myBooking.id}`);
+                                    toast.success("Jelentkezés lemondva");
+                                    fetchSession();
+                                } catch (err: unknown) {
+                                    toast.error(err instanceof Error ? err.message : "Hiba történt");
+                                } finally {
+                                    setActionLoading(null);
+                                }
+                            }}
+                            disabled={actionLoading === "cancel_booking"}
+                        >
+                            {actionLoading === "cancel_booking" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <X className="h-4 w-4" />
+                            )}
+                            Jelentkezés lemondása
+                        </Button>
                     </CardContent>
                 </Card>
             )}
