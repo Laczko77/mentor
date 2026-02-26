@@ -36,10 +36,12 @@ export async function GET(
             };
         });
 
+        const acceptedCount = bookings.filter((b: any) => b.status === "accepted").length;
+
         return NextResponse.json({
             ...session,
             bookings: enrichedBookings,
-            booked_count: enrichedBookings.length,
+            booked_count: acceptedCount,
         });
     } catch (error) {
         return handleApiError(error);
@@ -89,6 +91,23 @@ export async function PUT(
                     type: "session_cancelled",
                     title: "Session törölve",
                     message: `A(z) "${existing.title}" session törölve lett.`,
+                    related_id: id,
+                });
+            }
+        } else {
+            // If updated (not cancelled), notify applicants
+            const { data: bookings } = await supabase
+                .from("bookings")
+                .select("mentee_id")
+                .eq("session_id", id)
+                .in("status", ["pending", "accepted"]);
+
+            for (const b of (bookings || [])) {
+                await supabase.from("notifications").insert({
+                    user_id: b.mentee_id,
+                    type: "session_updated",
+                    title: "Időpont módosítás",
+                    message: `Az időpont módosult a következő sessionben: "${existing.title}".`,
                     related_id: id,
                 });
             }

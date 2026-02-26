@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
         `).order("created_at", { ascending: false });
 
         if (user.role === "mentor") {
-            query = query.eq("mentor_id", user.id).eq("status", "pending");
+            query = query
+                .eq("mentor_id", user.id)
+                .eq("status", "pending")
+                .gte("proposed_start_time", new Date().toISOString());
         } else {
             query = query.eq("mentee_id", user.id);
         }
@@ -42,6 +45,18 @@ export async function POST(request: NextRequest) {
         }
 
         const supabase = createAdminClient();
+
+        // Anti-spam check: Limit to 10 pending requests
+        const { count: pendingCount, error: countError } = await supabase
+            .from("session_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("mentee_id", user.id)
+            .eq("status", "pending");
+
+        if (countError) throw countError;
+        if ((pendingCount || 0) >= 10) {
+            throw new Error("Egyszerre maximum 10 függőben lévő kérelmed lehet. Kérlek, várj, amíg valamelyiket elbírálják.");
+        }
 
         const { data, error } = await supabase
             .from("session_requests")

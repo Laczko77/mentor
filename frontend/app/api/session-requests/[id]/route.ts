@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireAuth, handleApiError } from "@/lib/server-auth";
-import { differenceInMinutes, parseISO } from "date-fns";
 import { createNotification } from "@/lib/notifications";
 
 export async function PUT(
@@ -58,9 +57,21 @@ export async function PUT(
         if (status === "accepted") {
             const finalStart = body.start_time || req.proposed_start_time;
             const finalEnd = body.end_time || req.proposed_end_time;
-            const startDt = parseISO(finalStart);
-            const endDt = parseISO(finalEnd);
-            const dur = differenceInMinutes(endDt, startDt);
+
+            // Check for overlapping sessions
+            const { data: overlapping, error: overlapError } = await supabase
+                .from("sessions")
+                .select("id")
+                .eq("mentor_id", user.id)
+                .lt("start_time", finalEnd)
+                .gt("end_time", finalStart)
+                .not("status", "eq", "cancelled")
+                .limit(1);
+
+            if (overlapError) throw overlapError;
+            if (overlapping && overlapping.length > 0) {
+                throw new Error("Ebben az időpontban már van egy meghirdetett alkalmad (vagy átfedésben van egy másik eseményeddel).");
+            }
 
             // create session
             const { data: sessionData, error: sessionErr } = await supabase
@@ -71,7 +82,6 @@ export async function PUT(
                     type: "individual",
                     start_time: finalStart,
                     end_time: finalEnd,
-                    duration_min: dur > 0 ? dur : 60,
                     max_slots: 1,
                     location_note: "Saját igényelt időpont",
                     status: "closed", // immediately closed since it's full

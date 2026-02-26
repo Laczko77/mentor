@@ -43,9 +43,12 @@ import {
     Trash2,
     FileText,
     Save,
+    Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Booking {
     id: string;
@@ -95,6 +98,16 @@ export default function SessionDetailPage() {
     const [noteContents, setNoteContents] = useState<Record<string, string>>({});
     const [savingNote, setSavingNote] = useState<string | null>(null);
 
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [editForm, setEditForm] = useState({
+        title: "",
+        start_date: "",
+        start_time: "",
+        end_time: "",
+        max_slots: 1,
+        location_note: "",
+    });
+
     const isMentor = profile?.role === "mentor";
     const sessionId = params.id as string;
 
@@ -102,6 +115,18 @@ export default function SessionDetailPage() {
         try {
             const data = await api.get<SessionDetail>(`/sessions/${sessionId}`);
             setSession(data);
+            if (data) {
+                const start = new Date(data.start_time);
+                const end = new Date(data.end_time);
+                setEditForm({
+                    title: data.title || "",
+                    start_date: start.toISOString().split("T")[0],
+                    start_time: start.toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" }),
+                    end_time: end.toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" }),
+                    max_slots: data.max_slots || 1,
+                    location_note: data.location_note || "",
+                });
+            }
         } catch {
             // silent
         } finally {
@@ -161,6 +186,35 @@ export default function SessionDetailPage() {
             toast.success(
                 status === "accepted" ? "Foglalás elfogadva!" : "Foglalás elutasítva."
             );
+            fetchSession();
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "Hiba";
+            toast.error(msg);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleEditSubmit = async () => {
+        setActionLoading("edit_session");
+        try {
+            const start = new Date(`${editForm.start_date}T${editForm.start_time}`);
+            const end = new Date(`${editForm.start_date}T${editForm.end_time}`);
+
+            if (end <= start) {
+                toast.error("A befejezési időnek a kezdés után kell lennie");
+                return;
+            }
+
+            await api.put(`/sessions/${sessionId}`, {
+                title: editForm.title,
+                start_time: start.toISOString(),
+                end_time: end.toISOString(),
+                max_slots: editForm.max_slots,
+                location_note: editForm.location_note || null,
+            });
+            toast.success("Alkalom sikeresen módosítva!");
+            setIsEditDialogOpen(false);
             fetchSession();
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : "Hiba";
@@ -573,6 +627,99 @@ export default function SessionDetailPage() {
                                         }}
                                     >
                                         Kiterjesztés
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                    {session.status === "open" && (
+                        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" className="gap-2 text-primary hover:bg-primary/10">
+                                    <Pencil className="h-4 w-4" />
+                                    Módosítás
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md glass-panel border border-primary/20 bg-black/80 backdrop-blur-2xl">
+                                <DialogHeader>
+                                    <DialogTitle className="text-2xl font-black text-white flex items-center gap-2">
+                                        <Pencil className="h-6 w-6 text-primary" />
+                                        Alkalom Módosítása
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        Módosítsd az alkalom részleteit. A diákok értesítést kapnak róla.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 pt-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-white">Megnevezés</Label>
+                                        <Input
+                                            value={editForm.title}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                                            className="bg-white/5 border-white/10 text-white"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-white">Dátum</Label>
+                                        <Input
+                                            type="date"
+                                            value={editForm.start_date}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, start_date: e.target.value }))}
+                                            className="bg-white/5 border-white/10 text-white"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-white">Kezdés</Label>
+                                            <Input
+                                                type="time"
+                                                value={editForm.start_time}
+                                                onChange={(e) => setEditForm(prev => ({ ...prev, start_time: e.target.value }))}
+                                                className="bg-white/5 border-white/10 text-white"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-white">Befejezés</Label>
+                                            <Input
+                                                type="time"
+                                                value={editForm.end_time}
+                                                onChange={(e) => setEditForm(prev => ({ ...prev, end_time: e.target.value }))}
+                                                className="bg-white/5 border-white/10 text-white"
+                                            />
+                                        </div>
+                                    </div>
+                                    {session.type === "group" && (
+                                        <div className="space-y-2">
+                                            <Label className="text-white">Max Résztvevők</Label>
+                                            <Input
+                                                type="number"
+                                                min={Math.max(2, session.booked_count)}
+                                                value={editForm.max_slots}
+                                                onChange={(e) => setEditForm(prev => ({ ...prev, max_slots: parseInt(e.target.value) || 2 }))}
+                                                className="bg-white/5 border-white/10 text-white"
+                                            />
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Minimum ennyi kell legyen, ahányan már jelentkeztek ({session.booked_count}).
+                                            </p>
+                                        </div>
+                                    )}
+                                    <div className="space-y-2">
+                                        <Label className="text-white">Helyszín / Link</Label>
+                                        <Textarea
+                                            value={editForm.location_note}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, location_note: e.target.value }))}
+                                            className="bg-white/5 border-white/10 text-white"
+                                        />
+                                    </div>
+                                    <Button
+                                        className="w-full h-12 btn-telekom text-md font-bold uppercase tracking-widest mt-4"
+                                        onClick={handleEditSubmit}
+                                        disabled={actionLoading === "edit_session"}
+                                    >
+                                        {actionLoading === "edit_session" ? (
+                                            <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                                        ) : null}
+                                        Mentés
                                     </Button>
                                 </div>
                             </DialogContent>

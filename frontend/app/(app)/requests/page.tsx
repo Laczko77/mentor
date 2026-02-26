@@ -8,13 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Calendar, Clock, Check, X, Trash2, Save } from "lucide-react";
+import { Loader2, Plus, Calendar, Clock, Check, X, Trash2, Save, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TechCard } from "@/components/ui/TechCard";
-
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SessionRequest {
     id: string;
@@ -42,8 +41,12 @@ export default function RequestsPage() {
     const [createOpen, setCreateOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+    // Grouping state
+    const [expandedMentees, setExpandedMentees] = useState<Record<string, boolean>>({});
+
     // Inline time editing state for each request (mentor side)
     const [editedTimes, setEditedTimes] = useState<Record<string, { start_time: string; end_time: string }>>({});
+    const [isEditingTime, setIsEditingTime] = useState<Record<string, boolean>>({});
 
     // Form
     const [form, setForm] = useState({
@@ -58,19 +61,17 @@ export default function RequestsPage() {
     const formatDateForInput = (isoString: string) => {
         if (!isoString) return "";
         try {
-            // Fix string format if it lacks a 'T'
             const formattedString = isoString.includes(' ') ? isoString.replace(' ', 'T') : isoString;
             const d = new Date(formattedString);
 
             if (isNaN(d.getTime())) {
                 return formattedString.slice(0, 16);
             }
-            // Shift time by local timezone offset so ISO sliced string shows local time
             const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
             return localDate.toISOString().slice(0, 16);
         } catch (e) {
             console.error("Error formatting date:", e);
-            return isoString.slice(0, 16); // Fallback
+            return isoString.slice(0, 16);
         }
     };
 
@@ -78,7 +79,6 @@ export default function RequestsPage() {
         try {
             const data = await api.get<SessionRequest[]>("/session-requests");
             setRequests(data);
-            // Initialize editable times for pending requests
             const times: Record<string, { start_time: string; end_time: string }> = {};
             data.forEach(req => {
                 if (req.status === "pending") {
@@ -195,6 +195,152 @@ export default function RequestsPage() {
         }));
     };
 
+    const toggleEditTime = (id: string) => {
+        setIsEditingTime(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const toggleMentee = (menteeId: string) => {
+        setExpandedMentees(prev => ({ ...prev, [menteeId]: !prev[menteeId] }));
+    };
+
+    const groupedRequests = requests.reduce((acc, req) => {
+        const menteeId = req.mentee_id || "unknown";
+        if (!acc[menteeId]) {
+            acc[menteeId] = { mentee: req.mentee, requests: [] };
+        }
+        acc[menteeId].requests.push(req);
+        return acc;
+    }, {} as Record<string, { mentee: { full_name: string; email: string }; requests: SessionRequest[] }>);
+
+    const renderCardContent = (req: SessionRequest) => {
+        const start = new Date(req.proposed_start_time);
+        const end = new Date(req.proposed_end_time);
+        const isEditing = isEditingTime[req.id];
+
+        return (
+            <CardContent className="space-y-4 px-0 pb-0 pt-4">
+                <div className="flex flex-col gap-3 text-sm text-muted-foreground w-full">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                            <Calendar className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="font-medium text-foreground">
+                            {start.toLocaleDateString("hu-HU", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                weekday: "short",
+                            })}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                            <Clock className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="font-medium text-foreground">
+                            {start.toLocaleTimeString("hu-HU", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}{" "}
+                            –{" "}
+                            {end.toLocaleTimeString("hu-HU", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                        </span>
+                    </div>
+                </div>
+
+                {req.status === "pending" && (
+                    <div className="space-y-3 pt-2">
+                        {isEditing && editedTimes[req.id] ? (
+                            <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3 animate-in fade-in zoom-in-95">
+                                <p className="text-xs text-muted-foreground font-medium">
+                                    Új időpont javaslata:
+                                </p>
+                                <div className="space-y-3">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs text-foreground/80">Kezdés</Label>
+                                        <Input
+                                            type="datetime-local"
+                                            className="input-telekom h-10 text-sm w-full"
+                                            value={editedTimes[req.id].start_time}
+                                            onChange={e => updateEditedTime(req.id, "start_time", e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs text-foreground/80">Befejezés</Label>
+                                        <Input
+                                            type="datetime-local"
+                                            className="input-telekom h-10 text-sm w-full"
+                                            value={editedTimes[req.id].end_time}
+                                            onChange={e => updateEditedTime(req.id, "end_time", e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full text-xs h-8"
+                                    onClick={() => toggleEditTime(req.id)}
+                                >
+                                    Mégse
+                                </Button>
+                            </div>
+                        ) : (
+                            isMentor && (
+                                <button
+                                    className="text-xs text-primary/80 hover:text-primary underline underline-offset-4 transition-colors w-full text-center py-1.5"
+                                    onClick={() => toggleEditTime(req.id)}
+                                >
+                                    Időpont módosítása elfogadás előtt
+                                </button>
+                            )
+                        )}
+
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/10">
+                            {isMentor ? (
+                                <>
+                                    <Button
+                                        className="w-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20 shadow-none font-medium h-10"
+                                        disabled={actionLoading === req.id}
+                                        onClick={() => handleAction(req.id, "accepted")}
+                                    >
+                                        {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-2" /> Elfogad</>}
+                                    </Button>
+                                    <Button
+                                        className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 shadow-none font-medium h-10"
+                                        onClick={() => handleAction(req.id, "rejected")}
+                                        disabled={actionLoading === req.id}
+                                    >
+                                        <X className="h-4 w-4 mr-2" /> Elutasít
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button
+                                        className="w-full btn-telekom h-10"
+                                        disabled={actionLoading === req.id}
+                                        onClick={() => handleEditRequest(req.id)}
+                                    >
+                                        {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Mentés</>}
+                                    </Button>
+                                    <Button
+                                        className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 shadow-none font-medium h-10"
+                                        onClick={() => handleDeleteRequest(req.id)}
+                                        disabled={actionLoading === req.id}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" /> Törlés
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        );
+    };
+
     if (loading) return (
         <div className="flex min-h-[400px] items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -259,116 +405,126 @@ export default function RequestsPage() {
                 )}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-                {requests.length === 0 ? (
-                    <div className="col-span-full py-12 text-center text-muted-foreground">Nincsenek időpont kérelmek.</div>
-                ) : (
-                    requests.map(req => (
-                        <TechCard key={req.id}>
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle>{req.title}</CardTitle>
-                                        <CardDescription>{isMentor ? req.mentee?.full_name : req.mentor?.full_name}</CardDescription>
-                                    </div>
-                                    <Badge className={req.status === 'pending' ? 'bg-amber-500/10 text-amber-500' : req.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}>
-                                        {req.status === 'pending' ? 'Függő' : req.status === 'accepted' ? 'Elfogadva' : 'Elutasítva'}
-                                    </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {/* For non-pending requests: show read-only time */}
-                                {req.status !== "pending" && (
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Calendar className="h-4 w-4" />
-                                        <span>{new Date(req.proposed_start_time).toLocaleString("hu-HU")} - {new Date(req.proposed_end_time).toLocaleTimeString("hu-HU")}</span>
-                                    </div>
-                                )}
-
-                                {/* For pending requests: inline editable time fields + action buttons */}
-                                {req.status === "pending" && editedTimes[req.id] && (
-                                    <div className="space-y-4">
-                                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-                                            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
-                                                <Clock className="h-3.5 w-3.5" />
-                                                {isMentor ? "Módosíthatod az időpontot elfogadás előtt" : "Módosíthatod az időpontot elfogadásig"}
-                                            </p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                <div className="space-y-1">
-                                                    <Label className="text-xs">Kezdés</Label>
-                                                    <Input
-                                                        type="datetime-local"
-                                                        className="input-telekom h-9 text-sm"
-                                                        value={editedTimes[req.id].start_time}
-                                                        onChange={e => updateEditedTime(req.id, "start_time", e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <Label className="text-xs">Befejezés</Label>
-                                                    <Input
-                                                        type="datetime-local"
-                                                        className="input-telekom h-9 text-sm"
-                                                        value={editedTimes[req.id].end_time}
-                                                        onChange={e => updateEditedTime(req.id, "end_time", e.target.value)}
-                                                    />
-                                                </div>
+            {requests.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground w-full">Nincsenek időpont kérelmek.</div>
+            ) : isMentor ? (
+                <div className="space-y-6">
+                    {Object.entries(groupedRequests).map(([menteeId, group]) => {
+                        const pendingCount = group.requests.filter(r => r.status === "pending").length;
+                        const isExpanded = expandedMentees[menteeId];
+                        return (
+                            <div key={menteeId} className="space-y-4">
+                                <Card
+                                    className="card-telekom cursor-pointer transition-all hover:border-primary/50 group"
+                                    onClick={() => toggleMentee(menteeId)}
+                                >
+                                    <div className="p-4 sm:p-6 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg group-hover:scale-105 transition-transform">
+                                                {group.mentee?.full_name?.charAt(0) || "M"}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-lg">{group.mentee?.full_name || "Ismeretlen mentorált"}</h3>
+                                                <p className="text-sm text-muted-foreground">{group.requests.length} összes kérelem</p>
                                             </div>
                                         </div>
-
-                                        {isMentor ? (
-                                            <div className="flex flex-col sm:flex-row gap-2">
-                                                <Button
-                                                    className="flex-1 bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30"
-                                                    disabled={actionLoading === req.id}
-                                                    onClick={() => handleAction(req.id, "accepted")}
-                                                >
-                                                    {actionLoading === req.id ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        <>
-                                                            <Check className="h-4 w-4 mr-2" /> Elfogadás
-                                                        </>
-                                                    )}
-                                                </Button>
-                                                <Button
-                                                    className="flex-1 bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                                                    onClick={() => handleAction(req.id, "rejected")}
-                                                    disabled={actionLoading === req.id}
-                                                >
-                                                    <X className="h-4 w-4 mr-2" /> Elutasítás
-                                                </Button>
+                                        <div className="flex items-center gap-4">
+                                            {pendingCount > 0 && (
+                                                <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
+                                                    {pendingCount} új kérelem
+                                                </Badge>
+                                            )}
+                                            <div className="text-muted-foreground w-6 flex justify-center">
+                                                {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                                             </div>
-                                        ) : (
-                                            <div className="flex flex-col sm:flex-row gap-2">
-                                                <Button
-                                                    className="flex-1 btn-telekom"
-                                                    disabled={actionLoading === req.id}
-                                                    onClick={() => handleEditRequest(req.id)}
-                                                >
-                                                    {actionLoading === req.id ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        <>
-                                                            <Save className="h-4 w-4 mr-2" /> Mentés
-                                                        </>
-                                                    )}
-                                                </Button>
-                                                <Button
-                                                    className="flex-1 bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                                                    onClick={() => handleDeleteRequest(req.id)}
-                                                    disabled={actionLoading === req.id}
-                                                >
-                                                    <Trash2 className="h-4 w-4 mr-2" /> Törlés
-                                                </Button>
-                                            </div>
-                                        )}
+                                        </div>
+                                    </div>
+                                </Card>
+                                {isExpanded && (
+                                    <div className="pl-2 sm:pl-8 space-y-4 animate-in slide-in-from-top-4 fade-in duration-300">
+                                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                            {group.requests.map(req => (
+                                                <TechCard key={req.id} className="group transition-all duration-300 hover:border-primary/50">
+                                                    <CardHeader className="pb-3 px-0 pt-0">
+                                                        <div className="flex justify-between items-start gap-2">
+                                                            <CardTitle className="text-base font-semibold leading-snug">{req.title}</CardTitle>
+                                                            <Badge className={req.status === 'pending' ? 'bg-amber-500/10 text-amber-500' : req.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}>
+                                                                {req.status === 'pending' ? 'Függő' : req.status === 'accepted' ? 'Elfogadva' : 'Elutasítva'}
+                                                            </Badge>
+                                                        </div>
+                                                    </CardHeader>
+                                                    {renderCardContent(req)}
+                                                </TechCard>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                            </CardContent>
-                        </TechCard>
-                    ))
-                )}
-            </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <Tabs defaultValue="active" className="w-full">
+                    <TabsList className="mb-4 bg-primary/5">
+                        <TabsTrigger value="active" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                            Aktív / Függő
+                        </TabsTrigger>
+                        <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                            Előzmények
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="active" className="space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                            {requests.filter(r => r.status === "pending").length === 0 ? (
+                                <div className="col-span-full py-8 text-center text-muted-foreground border border-dashed border-border/50 rounded-lg">Nincsenek aktív javaslataid.</div>
+                            ) : (
+                                requests.filter(r => r.status === "pending").map(req => (
+                                    <TechCard key={req.id} className="group transition-all duration-300 hover:border-primary/50">
+                                        <CardHeader className="pb-3 px-0 pt-0">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div>
+                                                    <CardTitle className="text-base font-semibold leading-snug">{req.title}</CardTitle>
+                                                    <CardDescription className="text-xs pt-1">{req.mentor?.full_name}</CardDescription>
+                                                </div>
+                                                <Badge className="bg-amber-500/10 text-amber-500">
+                                                    Függő
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        {renderCardContent(req)}
+                                    </TechCard>
+                                ))
+                            )}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="history" className="space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                            {requests.filter(r => r.status !== "pending").length === 0 ? (
+                                <div className="col-span-full py-8 text-center text-muted-foreground border border-dashed border-border/50 rounded-lg">Nincsenek előzmények.</div>
+                            ) : (
+                                requests.filter(r => r.status !== "pending").map(req => (
+                                    <TechCard key={req.id} className="group transition-all duration-300 hover:border-primary/50">
+                                        <CardHeader className="pb-3 px-0 pt-0">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div>
+                                                    <CardTitle className="text-base font-semibold leading-snug">{req.title}</CardTitle>
+                                                    <CardDescription className="text-xs pt-1">{req.mentor?.full_name}</CardDescription>
+                                                </div>
+                                                <Badge className={req.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}>
+                                                    {req.status === 'accepted' ? 'Elfogadva' : 'Elutasítva'}
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        {renderCardContent(req)}
+                                    </TechCard>
+                                ))
+                            )}
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            )}
         </div>
     );
 }

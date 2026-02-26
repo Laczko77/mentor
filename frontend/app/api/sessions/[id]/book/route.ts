@@ -35,13 +35,13 @@ export async function POST(
             throw new Error("Már jelentkeztél erre az alkalomra");
         }
 
-        // Check available slots – only count active (pending/accepted) bookings
+        // Check available slots – only count accepted bookings
         // Note: DB trigger also enforces this atomically to prevent race conditions
         const { count } = await supabase
             .from("bookings")
             .select("*", { count: "exact", head: true })
             .eq("session_id", sessionId)
-            .in("status", ["pending", "accepted"]);
+            .eq("status", "accepted");
 
         if ((count || 0) >= session.max_slots) {
             throw new Error("Az alkalom megtelt");

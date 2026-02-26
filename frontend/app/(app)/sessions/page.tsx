@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Plus, Loader2, Filter } from "lucide-react";
 import Link from "next/link";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface Session {
     id: string;
@@ -34,6 +36,7 @@ export default function SessionsPage() {
     const [loading, setLoading] = useState(true);
     const [typeFilter, setTypeFilter] = useState<string>("all");
     const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [hideFull, setHideFull] = useState(true);
 
     const fetchSessions = async () => {
         setLoading(true);
@@ -106,6 +109,12 @@ export default function SessionsPage() {
                         <SelectItem value="cancelled">Törölve</SelectItem>
                     </SelectContent>
                 </Select>
+                <div className="flex items-center space-x-2 bg-background/50 backdrop-blur-sm border rounded-md px-3 h-10">
+                    <Switch id="hide-full" checked={hideFull} onCheckedChange={setHideFull} />
+                    <Label htmlFor="hide-full" className="text-sm cursor-pointer whitespace-nowrap">
+                        Betelt alkalmak elrejtése
+                    </Label>
+                </div>
             </div>
 
             {/* Sessions Grid */}
@@ -118,9 +127,11 @@ export default function SessionsPage() {
                 </div>
             ) : sessions.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {sessions.map((s) => (
-                        <SessionCard key={s.id} session={s} />
-                    ))}
+                    {sessions
+                        .filter(s => hideFull ? s.booked_count < s.max_slots : true)
+                        .map((s) => (
+                            <SessionCard key={s.id} session={s} onApplySuccess={fetchSessions} />
+                        ))}
                 </div>
             ) : (
                 <div className="py-20 text-center text-muted-foreground">
