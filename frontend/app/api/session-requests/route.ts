@@ -38,10 +38,24 @@ export async function POST(request: NextRequest) {
         if (user.role !== "mentee") throw new Error("Csak mentoráltak kezdeményezhetnek időpontot");
 
         const body = await request.json();
-        const { mentor_id, title, proposed_start_time, proposed_end_time } = body;
+        const { title, proposed_start_time, proposed_end_time } = body;
+        let { mentor_id } = body;
 
-        if (!mentor_id || !title || !proposed_start_time || !proposed_end_time) {
+        if (!title || !proposed_start_time || !proposed_end_time) {
             throw new Error("Minden mező kitöltése kötelező");
+        }
+
+        // Auto-resolve the single mentor if mentor_id is not provided
+        if (!mentor_id) {
+            const supabaseForMentor = createAdminClient();
+            const { data: mentorData, error: mentorError } = await supabaseForMentor
+                .from("profiles")
+                .select("id")
+                .eq("role", "mentor")
+                .limit(1)
+                .single();
+            if (mentorError || !mentorData) throw new Error("Nem található mentor az adatbázisban");
+            mentor_id = mentorData.id;
         }
 
         // Deadline check function (using current Budapest time for fairness)

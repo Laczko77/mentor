@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Calendar, Clock, Check, X, Trash2, Save, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { TechCard } from "@/components/ui/TechCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -28,16 +28,13 @@ interface SessionRequest {
     mentor: { full_name: string; email: string };
 }
 
-interface MentorOption {
-    id: string;
-    full_name: string;
-}
+
 
 export default function RequestsPage() {
     const { profile } = useAuth();
     const [requests, setRequests] = useState<SessionRequest[]>([]);
     const [loading, setLoading] = useState(true);
-    const [mentors, setMentors] = useState<MentorOption[]>([]);
+
     const [createOpen, setCreateOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -50,7 +47,6 @@ export default function RequestsPage() {
 
     // Form
     const [form, setForm] = useState({
-        mentor_id: "",
         title: "",
         proposed_start_time: "",
         proposed_end_time: ""
@@ -96,23 +92,14 @@ export default function RequestsPage() {
         }
     };
 
-    const fetchMentors = async () => {
-        if (isMentor) return;
-        try {
-            const data = await api.get<MentorOption[]>("/mentors");
-            setMentors(data);
-        } catch {
-            // silent
-        }
-    };
+
 
     useEffect(() => {
         fetchRequests();
-        fetchMentors();
     }, [isMentor]);
 
     const handleCreate = async () => {
-        if (!form.mentor_id || !form.title || !form.proposed_start_time || !form.proposed_end_time) {
+        if (!form.title || !form.proposed_start_time || !form.proposed_end_time) {
             return toast.error("Minden mező kötelező!");
         }
         try {
@@ -124,7 +111,7 @@ export default function RequestsPage() {
             await api.post("/session-requests", payload);
             toast.success("Kérés sikeresen elküldve!");
             setCreateOpen(false);
-            setForm({ mentor_id: "", title: "", proposed_start_time: "", proposed_end_time: "" });
+            setForm({ title: "", proposed_start_time: "", proposed_end_time: "" });
             fetchRequests();
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Hiba");
@@ -396,17 +383,6 @@ export default function RequestsPage() {
                             </div>
 
                             <div className="space-y-4 pt-4">
-                                <div className="space-y-2">
-                                    <Label>Mentor</Label>
-                                    <Select value={form.mentor_id} onValueChange={(v) => setForm({ ...form, mentor_id: v })}>
-                                        <SelectTrigger className="input-telekom"><SelectValue placeholder="Válassz mentort" /></SelectTrigger>
-                                        <SelectContent>
-                                            {mentors.map(m => (
-                                                <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                                 <div className="space-y-2">
                                     <Label>Téma / Cím</Label>
                                     <Input className="input-telekom" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="pl. Kód review" />
