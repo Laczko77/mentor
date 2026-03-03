@@ -46,15 +46,20 @@ export function SessionCard({ session, showActions = true, onApplySuccess }: Ses
 
     const statusColors: Record<string, string> = {
         open: "text-emerald-500 border-emerald-500/20 bg-emerald-500/10",
+        full: "text-orange-500 border-orange-500/20 bg-orange-500/10",
         closed: "text-muted-foreground border-border bg-muted/20",
         cancelled: "text-destructive border-destructive/20 bg-destructive/10",
     };
 
     const statusLabels: Record<string, string> = {
         open: "Nyitott",
+        full: "Megtelt",
         closed: "Lezárva",
         cancelled: "Törölve",
     };
+
+    const isFull = session.status === "open" && session.max_slots > 0 && (session.booked_count ?? 0) >= session.max_slots;
+    const effectiveStatus = isFull ? "full" : session.status;
 
     const handleBook = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -87,9 +92,9 @@ export function SessionCard({ session, showActions = true, onApplySuccess }: Ses
                     </CardTitle>
                     <Badge
                         variant="outline"
-                        className={`shrink-0 text-xs ${statusColors[session.status] || ""}`}
+                        className={`shrink-0 text-xs ${statusColors[effectiveStatus] || ""}`}
                     >
-                        {statusLabels[session.status] || session.status}
+                        {statusLabels[effectiveStatus] || effectiveStatus}
                     </Badge>
                 </div>
             </CardHeader>

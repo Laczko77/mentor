@@ -23,7 +23,7 @@ export async function GET() {
             supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
             supabase.from("sessions").select("*", { count: "exact", head: true }).eq("mentor_id", user.id).gte("start_time", nowIso).neq("status", "cancelled"),
             supabase.from("profiles").select("monthly_hour_quota").eq("id", user.id).single(),
-            supabase.from("completed_hours_mentor").select("used_hours").eq("mentor_id", user.id).single(),
+            supabase.from("sessions").select("duration_min").eq("mentor_id", user.id).gte("end_time", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()).lt("end_time", nowIso).neq("status", "cancelled"),
         ]);
 
         if (menteesResult.error) throw menteesResult.error;
@@ -59,7 +59,12 @@ export async function GET() {
         });
 
         const quota = mentorProfileResult.data?.monthly_hour_quota || 54;
-        const usedHours = usedHoursResult.data?.used_hours ? parseFloat(usedHoursResult.data.used_hours) : 0;
+
+        let calculatedUsedHours = 0;
+        if (usedHoursResult.data) {
+            calculatedUsedHours = usedHoursResult.data.reduce((acc: number, s: any) => acc + (s.duration_min || 0), 0) / 60;
+        }
+        const usedHours = calculatedUsedHours;
 
         return NextResponse.json({
             total_mentees: mentees?.length || 0,

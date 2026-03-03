@@ -27,6 +27,7 @@ import {
     BarChart3,
     ClipboardList,
     ChevronDown,
+    CheckSquare,
 } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -60,6 +61,7 @@ export function Navbar() {
     // All nav items (for mobile)
     const allNavItems = [
         { href: "/dashboard", label: "Vezérlőpult", icon: LayoutDashboard },
+        { href: "/group-sessions", label: "Csoportos szavazás", icon: CheckSquare },
         { href: "/sessions", label: "Alkalmak", icon: Calendar },
         { href: "/calendar", label: "Naptár", icon: CalendarDays },
         { href: "/requests", label: "Kérelmek", icon: ClipboardList },
@@ -75,6 +77,7 @@ export function Navbar() {
 
     // Desktop grouped navigation
     const sessionsGroup = [
+        { href: "/group-sessions", label: "Csoportos szavazás", icon: CheckSquare },
         { href: "/sessions", label: "Alkalmak", icon: Calendar },
         { href: "/calendar", label: "Naptár", icon: CalendarDays },
         { href: "/requests", label: "Kérelmek", icon: ClipboardList },

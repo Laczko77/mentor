@@ -21,10 +21,15 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Repeat, Calendar } from "lucide-react";
+import { ArrowLeft, Loader2, Repeat, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { hu } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 export default function NewSessionPage() {
     const router = useRouter();
@@ -186,17 +191,43 @@ export default function NewSessionPage() {
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <Label htmlFor="start_date">Dátum</Label>
-                            <Input
-                                id="start_date"
-                                type="date"
-                                value={form.start_date}
-                                onChange={(e) =>
-                                    setForm({ ...form, start_date: e.target.value })
-                                }
-                                required
-                            />
+                        <div className="space-y-2 flex flex-col">
+                            <Label>Dátum</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal input-telekom bg-black/40 border-white/10 hover:bg-white/5",
+                                            !form.start_date && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {form.start_date ? (
+                                            format(new Date(form.start_date), "yyyy. MMMM d.", { locale: hu })
+                                        ) : (
+                                            <span>Válassz dátumot</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 glass-panel border-primary/20 bg-black/80 backdrop-blur-3xl" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={form.start_date ? new Date(form.start_date) : undefined}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                const offset = date.getTimezoneOffset() * 60000;
+                                                const localDate = new Date(date.getTime() - offset).toISOString().split('T')[0];
+                                                setForm({ ...form, start_date: localDate });
+                                            } else {
+                                                setForm({ ...form, start_date: "" });
+                                            }
+                                        }}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            <input type="hidden" value={form.start_date} required />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -315,7 +346,7 @@ export default function NewSessionPage() {
                                                         variant="outline"
                                                         className="gap-1 text-xs"
                                                     >
-                                                        <Calendar className="h-3 w-3" />
+                                                        <CalendarIcon className="h-3 w-3" />
                                                         {d.toLocaleDateString("hu-HU", {
                                                             month: "short",
                                                             day: "numeric",

@@ -44,15 +44,19 @@ export async function GET() {
 
         if (profileErr) throw profileErr;
 
-        // Get used hours this month
-        const { data: usedData, error: usedErr } = await supabase
-            .from("completed_hours_mentor")
-            .select("used_hours")
+        // Get used hours this month based on application tz
+        const nowIso = new Date().toISOString();
+        const startOfMonthIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+        const { data: monthSessions, error: usedErr } = await supabase
+            .from("sessions")
+            .select("duration_min")
             .eq("mentor_id", user.id)
-            .single();
+            .gte("end_time", startOfMonthIso)
+            .lt("end_time", nowIso)
+            .neq("status", "cancelled");
 
         const quota = profile?.monthly_hour_quota || 54;
-        const used = usedData?.used_hours ? parseFloat(usedData.used_hours) : 0;
+        const used = monthSessions ? monthSessions.reduce((acc: number, s: any) => acc + (s.duration_min || 0), 0) / 60 : 0;
 
         return NextResponse.json({
             monthly_quota: quota,

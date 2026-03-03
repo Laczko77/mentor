@@ -32,6 +32,28 @@ export async function PUT(
             const finalStart = body.start_time || req.proposed_start_time;
             const finalEnd = body.end_time || req.proposed_end_time;
 
+            // Deadline check (a módosításnál is meg kell felelni a szabálynak)
+            const now = new Date();
+            const start = new Date(finalStart);
+
+            let deadlineDay = new Date(start);
+            const dayOfWeek = start.getDay(); // 0 = Sunday, 1 = Monday, 6 = Saturday
+
+            if (dayOfWeek === 1 || dayOfWeek === 6 || dayOfWeek === 0) {
+                const diffToFriday = dayOfWeek === 1 ? 3 : dayOfWeek === 6 ? 1 : 2;
+                deadlineDay.setDate(start.getDate() - diffToFriday);
+            } else {
+                deadlineDay.setDate(start.getDate() - 1);
+            }
+
+            // Apply local 13:00 to the deadline date
+            deadlineDay.setHours(13, 0, 0, 0);
+
+            if (now.getTime() > deadlineDay.getTime()) {
+                const deadlineStr = deadlineDay.toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                throw new Error(`Erre az időpontra már nem lehet jelentkezni. A határidő: ${deadlineStr}`);
+            }
+
             const { error: updErr } = await supabase
                 .from("session_requests")
                 .update({

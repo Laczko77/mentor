@@ -355,8 +355,20 @@ export default function RequestsPage() {
                         {isMentor ? "Időpont Kérelmek" : "Saját Időpont Igényléseim"}
                     </h1>
                     <p className="mt-2 text-muted-foreground text-base sm:text-lg animate-in fade-in slide-in-from-left-4 duration-500 delay-150 fill-mode-both">
-                        {isMentor ? "Mentoráltok által javasolt időpontok bírálata" : "Javasolj saját időpontot a mentornak"}
+                        {isMentor ? "Mentoráltok által javasolt időpontok bírálata" : "Javasolj saját időpontot a mentornak. Ha az időpont nem megfelelő a mentornak, az ő elfogadása előtt módosíthatod, de számíts arra is, hogy teljesen más időpontot javasol."}
                     </p>
+
+                    {!isMentor && (
+                        <div className="mt-6 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 max-w-2xl animate-in fade-in slide-in-from-left-4 duration-500 delay-300">
+                            <p className="text-sm text-amber-800 dark:text-amber-400 font-bold mb-2">
+                                ⚠️ Jelentkezési határidők szabályzata a kérelmekre is:
+                            </p>
+                            <ul className="text-sm text-amber-700 dark:text-amber-500 list-disc pl-5 space-y-1">
+                                <li>Kedd–Péntek eseményekre: <span className="font-semibold">előző nap 13:00-ig</span> lehet kérelmet leadni.</li>
+                                <li>Szombat, Vasárnap, Hétfő eseményekre: <span className="font-semibold">péntek 13:00-ig</span> lehet kérelmet leadni.</li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
                 {!isMentor && (
@@ -372,6 +384,17 @@ export default function RequestsPage() {
                                 <DialogTitle>Időpont Igénylése</DialogTitle>
                                 <DialogDescription className="sr-only">Új időpont igénylése űrlap</DialogDescription>
                             </DialogHeader>
+
+                            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-md p-3 my-2">
+                                <p className="text-sm text-amber-800 dark:text-amber-400 font-medium mb-1">
+                                    Figyelem: A jelentkezési határidők a saját kérelmekre is vonatkoznak!
+                                </p>
+                                <ul className="text-xs text-amber-700 dark:text-amber-500 list-disc pl-4 space-y-1">
+                                    <li>Kedd–Péntek eseményekre: <span className="font-semibold">előző nap 13:00-ig</span></li>
+                                    <li>Szombat, Vasárnap, Hétfő eseményekre: <span className="font-semibold">péntek 13:00-ig</span></li>
+                                </ul>
+                            </div>
+
                             <div className="space-y-4 pt-4">
                                 <div className="space-y-2">
                                     <Label>Mentor</Label>

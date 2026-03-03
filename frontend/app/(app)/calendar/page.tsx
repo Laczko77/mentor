@@ -11,7 +11,9 @@ import {
     Clock,
     User,
     Crosshair,
-    X
+    X,
+    Pencil,
+    Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +60,7 @@ interface SessionEvent {
 
 const statusColorMap: Record<string, { bg: string; border: string; text: string }> = {
     open: { bg: "bg-primary/20", border: "border-primary/40", text: "text-primary hover:text-white" },
+    full: { bg: "bg-orange-500/20", border: "border-orange-500/40", text: "text-orange-400" },
     closed: { bg: "bg-slate-500/20", border: "border-slate-500/40", text: "text-slate-200" },
     cancelled: { bg: "bg-red-500/20", border: "border-red-500/40", text: "text-red-400" },
     work: { bg: "bg-blue-500/20", border: "border-blue-500/40", text: "text-blue-400 hover:text-white" },
@@ -75,7 +78,7 @@ export default function CalendarPage() {
 
     // Schedule Block Form State
     const [blockOpen, setBlockOpen] = useState(false);
-    const [blockForm, setBlockForm] = useState({ type: "shift", title: "", start_time: "", end_time: "" });
+    const [blockForm, setBlockForm] = useState({ id: "", type: "shift", title: "", start_time: "", end_time: "" });
 
     const isMentor = profile?.role === "mentor";
 
@@ -83,7 +86,7 @@ export default function CalendarPage() {
         setLoading(true);
         try {
             const [sessionsRes, scheduleRes] = await Promise.all([
-                api.get<any[]>("/sessions?include_past=true"),
+                api.get<any[]>("/sessions?include_past=true&show_all_for_calendar=true"),
                 api.get<any[]>("/mentor-schedule" + (isMentor ? `?mentor_id=${profile.id}` : ""))
             ]);
 
@@ -125,18 +128,24 @@ export default function CalendarPage() {
         fetchAllData();
     }, [isMentor]);
 
-    const handleAddBlock = async () => {
+    const handleSaveBlock = async () => {
         if (!blockForm.start_time || !blockForm.end_time) return toast.error("Állítsd be az időtartamot!");
         try {
             const payload = {
-                ...blockForm,
+                type: blockForm.type,
+                title: blockForm.title,
                 start_time: new Date(blockForm.start_time).toISOString(),
                 end_time: new Date(blockForm.end_time).toISOString()
             };
-            await api.post("/mentor-schedule", payload);
-            toast.success("Blokk sikeresen hozzáadva!");
+            if (blockForm.id) {
+                await api.put(`/mentor-schedule/${blockForm.id}`, payload);
+                toast.success("Műszak sikeresen módosítva!");
+            } else {
+                await api.post("/mentor-schedule", payload);
+                toast.success("Műszak sikeresen hozzáadva!");
+            }
             setBlockOpen(false);
-            setBlockForm({ type: "work", title: "", start_time: "", end_time: "" });
+            setBlockForm({ id: "", type: "work", title: "", start_time: "", end_time: "" });
             fetchAllData();
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Hiba történt");
@@ -182,7 +191,7 @@ export default function CalendarPage() {
                         {isMentor && (
                             <Dialog open={blockOpen} onOpenChange={setBlockOpen}>
                                 <DialogTrigger asChild>
-                                    <Button className="gap-2 btn-telekom h-8 px-4 text-xs font-bold tracking-widest uppercase">
+                                    <Button className="gap-2 btn-telekom h-8 px-4 text-xs font-bold tracking-widest uppercase" onClick={() => setBlockForm({ id: "", type: "shift", title: "", start_time: "", end_time: "" })}>
                                         Műszak Hozzáadása
                                     </Button>
                                 </DialogTrigger>
@@ -225,7 +234,7 @@ export default function CalendarPage() {
                                                 />
                                             </div>
                                         </div>
-                                        <Button className="w-full mt-2 h-12 btn-telekom" onClick={handleAddBlock}>Mentés</Button>
+                                        <Button className="w-full mt-2 h-12 btn-telekom" onClick={handleSaveBlock}>Mentés</Button>
                                     </div>
                                 </DialogContent>
                             </Dialog>
@@ -296,20 +305,24 @@ export default function CalendarPage() {
                                     </div>
 
                                     <div className="space-y-1.5 content-start overflow-hidden relative z-10">
-                                        {daySessions.slice(0, 3).map((session) => (
-                                            <div
-                                                key={session.id}
-                                                className={cn(
-                                                    "px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded flex items-center gap-1 sm:gap-2 text-[10px] sm:text-[11px] font-bold border truncate transition-all duration-300",
-                                                    statusColorMap[session.status]?.bg,
-                                                    statusColorMap[session.status]?.border,
-                                                    statusColorMap[session.status]?.text
-                                                )}
-                                            >
-                                                <span className="opacity-70 font-mono hidden sm:inline">{format(session.start, "HH:mm")}</span>
-                                                <span className="truncate">{session.title}</span>
-                                            </div>
-                                        ))}
+                                        {daySessions.slice(0, 3).map((session) => {
+                                            const isFull = session.status === "open" && session.max_slots > 0 && session.booked_count >= session.max_slots;
+                                            const effectiveStatus = isFull ? "full" : session.status;
+                                            return (
+                                                <div
+                                                    key={session.id}
+                                                    className={cn(
+                                                        "px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded flex items-center gap-1 sm:gap-2 text-[10px] sm:text-[11px] font-bold border truncate transition-all duration-300",
+                                                        statusColorMap[effectiveStatus]?.bg,
+                                                        statusColorMap[effectiveStatus]?.border,
+                                                        statusColorMap[effectiveStatus]?.text
+                                                    )}
+                                                >
+                                                    <span className="opacity-70 font-mono hidden sm:inline">{format(session.start, "HH:mm")}</span>
+                                                    <span className="truncate">{session.title}</span>
+                                                </div>
+                                            );
+                                        })}
                                         {daySessions.length > 3 && (
                                             <div className="text-[9px] sm:text-[10px] font-bold text-primary/70 pl-2 tracking-wider mt-1 uppercase">
                                                 +{daySessions.length - 3} további
@@ -326,71 +339,132 @@ export default function CalendarPage() {
             {/* Day View Modal */}
             <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
                 <DialogContent className="sm:max-w-md p-0 overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] glass-panel bg-black/80 rounded-2xl backdrop-blur-2xl">
-                    <DialogHeader className="p-6 pb-0">
-                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                            Események - {selectedDay ? format(selectedDay, "yyyy. MMMM d.", { locale: hu }) : ""}
-                        </DialogTitle>
-                        <DialogDescription className="sr-only">Napi események listája</DialogDescription>
+                    <DialogHeader className="p-4 sm:p-6 pb-0 flex flex-row justify-between items-start gap-4">
+                        <div>
+                            <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                                Események - {selectedDay ? format(selectedDay, "yyyy. MMMM d.", { locale: hu }) : ""}
+                            </DialogTitle>
+                            <DialogDescription className="sr-only">Napi események listája</DialogDescription>
+                        </div>
+                        {isMentor && (
+                            <Button size="sm" className="btn-telekom h-8 text-xs font-bold shrink-0" onClick={() => {
+                                if (selectedDay) {
+                                    const d = format(selectedDay, 'yyyy-MM-dd');
+                                    setBlockForm({ id: "", type: "shift", title: "", start_time: `${d}T08:00`, end_time: `${d}T16:00` });
+                                    setBlockOpen(true);
+                                    setSelectedDay(null);
+                                }
+                            }}>
+                                Új Műszak Ide
+                            </Button>
+                        )}
                     </DialogHeader>
                     <div className="p-4 sm:p-6 space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
                         {selectedDay && sessions.filter(s => isSameDay(s.start, selectedDay)).length > 0 ? (
                             sessions.filter(s => isSameDay(s.start, selectedDay))
                                 .sort((a, b) => a.start.getTime() - b.start.getTime())
-                                .map(session => (
-                                    <div key={session.id} className={cn(
-                                        "p-4 rounded-xl border bg-black/40 relative overflow-hidden group transition-all",
-                                        statusColorMap[session.status]?.border || "border-white/10",
-                                        statusColorMap[session.status]?.bg || "bg-black/40"
-                                    )}>
-                                        <div className="flex justify-between items-start gap-4 mb-3">
-                                            <h4 className={cn(
-                                                "font-bold leading-tight",
-                                                statusColorMap[session.status]?.text || "text-white"
-                                            )}>
-                                                {session.title}
-                                            </h4>
-                                            <Badge className={cn(
-                                                "px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)] border",
-                                                session.status === "open" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
-                                                    session.status === "closed" ? "bg-slate-500/20 text-slate-300 border-slate-500/30" :
-                                                        session.status === "cancelled" ? "bg-red-500/20 text-red-400 border-red-500/30" :
-                                                            session.type === "schedule_block" ? "bg-primary/20 text-primary border-primary/30" :
-                                                                "bg-white/10 text-white/70 border-white/20"
-                                            )}>
-                                                {session.status === "open" ? "Nyitott" :
-                                                    session.status === "closed" ? "Lezárt / Megtartott" :
-                                                        session.status === "cancelled" ? "Lemondva" :
-                                                            session.type === "schedule_block" ? "Műszak" : session.status}
-                                            </Badge>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3 mt-1 bg-black/40 p-3 rounded-lg border border-white/5">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                                                    <Clock className="h-3 w-3 text-primary" /> Időpont
+                                .map(session => {
+                                    const isFull = session.status === "open" && session.max_slots > 0 && session.booked_count >= session.max_slots;
+                                    const effectiveStatus = isFull ? "full" : session.status;
+                                    return (
+                                        <div key={session.id} className={cn(
+                                            "p-4 rounded-xl border bg-black/40 relative overflow-hidden group transition-all",
+                                            statusColorMap[effectiveStatus]?.border || "border-white/10",
+                                            statusColorMap[effectiveStatus]?.bg || "bg-black/40"
+                                        )}>
+                                            <div className="flex justify-between items-start gap-4 mb-3">
+                                                <h4 className={cn(
+                                                    "font-bold leading-tight",
+                                                    statusColorMap[effectiveStatus]?.text || "text-white"
+                                                )}>
+                                                    {session.title}
+                                                </h4>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge className={cn(
+                                                        "px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)] border",
+                                                        isFull ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                                                            session.status === "open" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+                                                                session.status === "closed" ? "bg-slate-500/20 text-slate-300 border-slate-500/30" :
+                                                                    session.status === "cancelled" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                                                                        session.type === "schedule_block" ? "bg-primary/20 text-primary border-primary/30" :
+                                                                            "bg-white/10 text-white/70 border-white/20"
+                                                    )}>
+                                                        {isFull ? "Megtelt" :
+                                                            session.status === "open" ? "Nyitott" :
+                                                                session.status === "closed" ? "Lezárt / Megtartott" :
+                                                                    session.status === "cancelled" ? "Lemondva" :
+                                                                        session.type === "schedule_block" ? "Műszak" : session.status}
+                                                    </Badge>
+                                                    {isMentor && session.type === "schedule_block" && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-primary hover:text-primary/80 hover:bg-primary/20" onClick={() => {
+                                                                setBlockForm({
+                                                                    id: session.id,
+                                                                    type: "shift",
+                                                                    title: session.title,
+                                                                    start_time: format(session.start, "yyyy-MM-dd'T'HH:mm"),
+                                                                    end_time: format(session.end, "yyyy-MM-dd'T'HH:mm")
+                                                                });
+                                                                setBlockOpen(true);
+                                                                setSelectedDay(null);
+                                                            }}>
+                                                                <Pencil className="h-3 w-3" />
+                                                            </Button>
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-400 hover:bg-red-500/20" onClick={async () => {
+                                                                if (confirm("Biztosan törlöd ezt a műszakot?")) {
+                                                                    try {
+                                                                        await api.delete(`/mentor-schedule/${session.id}`);
+                                                                        toast.success("Műszak törölve");
+                                                                        fetchAllData();
+                                                                    } catch (err: unknown) {
+                                                                        toast.error(err instanceof Error ? err.message : "Hiba történt");
+                                                                    }
+                                                                }
+                                                            }}>
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <span className="font-mono text-sm text-white/90">
-                                                    {format(session.start, "HH:mm")} - {format(session.end, "HH:mm")}
-                                                </span>
                                             </div>
-                                            {session.max_slots > 0 && (
+                                            <div className="grid grid-cols-2 gap-3 mt-1 bg-black/40 p-3 rounded-lg border border-white/5">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                                                        <User className="h-3 w-3 text-emerald-400" /> Kapacitás
+                                                        <Clock className="h-3 w-3 text-primary" /> Időpont
                                                     </div>
                                                     <span className="font-mono text-sm text-white/90">
-                                                        {session.booked_count} / {session.max_slots} foglalt
+                                                        {format(session.start, "HH:mm")} - {format(session.end, "HH:mm")}
                                                     </span>
+                                                </div>
+                                                {session.max_slots > 0 && (
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                                                            <User className="h-3 w-3 text-emerald-400" /> Kapacitás
+                                                        </div>
+                                                        <span className="font-mono text-sm text-white/90">
+                                                            {session.booked_count} / {session.max_slots} foglalt
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {session.type !== "schedule_block" && session.mentor_name && (
+                                                <div className="mt-3 text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded inline-block border border-white/10">
+                                                    <span className="uppercase tracking-wider text-[10px] font-bold mr-1 opacity-70">Oktató:</span>
+                                                    <span className="text-white/90 font-medium">{session.mentor_name}</span>
+                                                </div>
+                                            )}
+                                            {session.type !== "schedule_block" && isMentor && (
+                                                <div className="mt-4 flex justify-end">
+                                                    <Link href={`/sessions/${session.id}`}>
+                                                        <Button size="sm" variant="secondary" className="h-8 text-xs font-bold tracking-widest uppercase bg-white/10 hover:bg-white/20 text-white">
+                                                            Részletek
+                                                        </Button>
+                                                    </Link>
                                                 </div>
                                             )}
                                         </div>
-                                        {session.type !== "schedule_block" && session.mentor_name && (
-                                            <div className="mt-3 text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded inline-block border border-white/10">
-                                                <span className="uppercase tracking-wider text-[10px] font-bold mr-1 opacity-70">Oktató:</span>
-                                                <span className="text-white/90 font-medium">{session.mentor_name}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
+                                    );
+                                })
                         ) : (
                             <div className="text-center py-10 flex flex-col items-center gap-3 bg-black/40 rounded-xl border border-white/10">
                                 <CalendarIcon className="h-8 w-8 text-white/20" />

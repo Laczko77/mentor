@@ -272,9 +272,13 @@ export default function SessionDetailPage() {
 
     const statusMap: Record<string, { label: string; class: string }> = {
         open: { label: "Nyitott", class: "bg-emerald-500/10 text-emerald-600" },
+        full: { label: "Megtelt", class: "bg-orange-500/10 text-orange-600" },
         closed: { label: "Lezárva", class: "bg-gray-500/10 text-gray-600" },
         cancelled: { label: "Törölve", class: "bg-red-500/10 text-red-600" },
     };
+
+    const isFull = session.status === "open" && session.max_slots > 0 && session.booked_count >= session.max_slots;
+    const effectiveStatus = isFull ? "full" : session.status;
 
     const bookingStatusMap: Record<string, { label: string; class: string }> = {
         pending: { label: "Függő", class: "bg-amber-500/10 text-amber-600" },
@@ -307,9 +311,9 @@ export default function SessionDetailPage() {
                 </div>
                 <Badge
                     variant="outline"
-                    className={statusMap[session.status]?.class || ""}
+                    className={statusMap[effectiveStatus]?.class || ""}
                 >
-                    {statusMap[session.status]?.label || session.status}
+                    {statusMap[effectiveStatus]?.label || effectiveStatus}
                 </Badge>
             </div>
 
@@ -373,6 +377,9 @@ export default function SessionDetailPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-sm text-amber-500 mb-4">
+                            <strong>Figyelem:</strong> Keddtől péntekig az alkalmakra az <strong>előző nap 13:00 óráig</strong>, míg hétvégére (szombat, vasárnap) és hétfőre az <strong>adott hét péntek 13:00 óráig</strong> lehet jelentkezni! Későbbi jelentkezéseket a rendszer nem fogad el.
+                        </div>
                         <Textarea
                             placeholder="Opcionális megjegyzés..."
                             value={bookNote}

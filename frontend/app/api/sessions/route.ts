@@ -37,8 +37,10 @@ export async function GET(request: NextRequest) {
             return { ...rest, booked_count: bookingsCount, has_booked_by_me };
         });
 
+        const showAllForCalendar = searchParams.get("show_all_for_calendar") === "true";
+
         let finalSessions = sessions;
-        if (user.role === "mentee") {
+        if (user.role === "mentee" && !showAllForCalendar) {
             finalSessions = sessions.filter((s: any) => s.status === "open" || s.has_booked_by_me);
         }
 
