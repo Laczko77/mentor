@@ -148,7 +148,7 @@ export default function TemplatesPage() {
     if (!isMentor) {
         return (
             <div className="py-20 text-center text-muted-foreground font-mono">
-                [ACCESS DENIED] Csak mentor azonosítóval rendelkező entitások számára.
+                Nincs jogosultságod. Ez az oldal csak mentorok számára elérhető.
             </div>
         );
     }
@@ -189,7 +189,7 @@ export default function TemplatesPage() {
                         <DialogHeader>
                             <DialogTitle className="text-2xl font-black text-white flex items-center gap-2">
                                 <FileJson className="h-6 w-6 text-primary" />
-                                Új Sablon Konfiguráció
+                                Új Sablon
                             </DialogTitle>
                             <DialogDescription className="sr-only">
                                 Új sablon létrehozása űrlap
@@ -197,7 +197,7 @@ export default function TemplatesPage() {
                         </DialogHeader>
                         <div className="space-y-5 pt-4">
                             <div className="space-y-1">
-                                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Sablon azonosító (Név)</Label>
+                                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Sablon neve</Label>
                                 <Input
                                     className="input-telekom h-11"
                                     placeholder="pl. Heti 1:1 – Teams"
@@ -206,7 +206,7 @@ export default function TemplatesPage() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Publikus Session Cím</Label>
+                                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Alkalom címe</Label>
                                 <Input
                                     className="input-telekom h-11"
                                     placeholder="pl. Heti Architektúra Áttekintés"
@@ -216,14 +216,14 @@ export default function TemplatesPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Topológia (Típus)</Label>
+                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Típus</Label>
                                     <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
                                         <SelectTrigger className="input-telekom h-11">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent className="glass-panel border-primary/20">
-                                            <SelectItem value="individual">Egyéni (P2P)</SelectItem>
-                                            <SelectItem value="group">Csoportos (Multi)</SelectItem>
+                                            <SelectItem value="individual">Egyéni</SelectItem>
+                                            <SelectItem value="group">Csoportos</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -239,7 +239,7 @@ export default function TemplatesPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Max Kliensek</Label>
+                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Max létszám</Label>
                                     <Input
                                         className="input-telekom h-11 font-mono"
                                         type="number"
@@ -248,7 +248,7 @@ export default function TemplatesPage() {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Végpont (Helyszín)</Label>
+                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Helyszín</Label>
                                     <Input
                                         className="input-telekom h-11"
                                         placeholder="Teams / Iroda..."
@@ -259,7 +259,7 @@ export default function TemplatesPage() {
                             </div>
                             <Button className="w-full h-12 btn-telekom text-md font-bold uppercase tracking-widest mt-4" onClick={handleCreate} disabled={saving}>
                                 {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <FileJson className="mr-2 h-5 w-5" />}
-                                Konfiguráció Mentése
+                                Sablon Mentése
                             </Button>
                         </div>
                     </DialogContent>
@@ -354,7 +354,7 @@ export default function TemplatesPage() {
                                                         : "bg-purple-500/10 text-purple-400 border-purple-500/20"
                                                 )}
                                             >
-                                                {tpl.type === "individual" ? "P2P" : "Multi"}
+                                                {tpl.type === "individual" ? "Egyéni" : "Csoportos"}
                                             </Badge>
                                         </div>
                                     </CardHeader>
@@ -370,7 +370,7 @@ export default function TemplatesPage() {
                                                 ) : (
                                                     <User className="h-4 w-4 text-emerald-500" />
                                                 )}
-                                                <span className="text-white">{tpl.max_slots} Kliens</span>
+                                                <span className="text-white">{tpl.max_slots} fő</span>
                                             </div>
                                             {tpl.location_note && (
                                                 <div className="col-span-2 flex items-center gap-2 truncate">
@@ -435,7 +435,7 @@ export default function TemplatesPage() {
                         {selectedTpl && (
                             <div className="rounded-xl bg-black/50 border border-white/5 p-4 text-sm font-mono space-y-2">
                                 <div className="flex justify-between border-b border-white/10 pb-2">
-                                    <span className="text-muted-foreground uppercase tracking-wider">Erőforrás:</span>
+                                    <span className="text-muted-foreground uppercase tracking-wider">Sablon:</span>
                                     <span className="text-white font-bold">{selectedTpl.title}</span>
                                 </div>
                                 <div className="flex justify-between border-b border-white/10 pb-2 pt-1">

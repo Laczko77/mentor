@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireMentor, handleApiError } from "@/lib/server-auth";
-import { addMinutes, parseISO } from "date-fns";
 
 export async function DELETE(
     request: NextRequest,
@@ -52,8 +51,9 @@ export async function POST(
         const startTime = body.start_time;
         if (!startTime) throw new Error("start_time szükséges");
 
-        const startDt = parseISO(startTime);
-        const endDt = addMinutes(startDt, tpl.duration_min);
+        const startDt = new Date(startTime);
+        if (isNaN(startDt.getTime())) throw new Error("Érvénytelen időpont format");
+        const endDt = new Date(startDt.getTime() + tpl.duration_min * 60000);
 
         const { data, error } = await supabase
             .from("sessions")
