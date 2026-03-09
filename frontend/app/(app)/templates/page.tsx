@@ -335,65 +335,73 @@ export default function TemplatesPage() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.3, delay: i * 0.05 }}
                             >
-                                <TechCard className="h-full group hover:border-primary/50 transition-all duration-500">
-                                    <CardHeader className="pb-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="space-y-1">
-                                                <CardTitle className="text-xl font-bold leading-tight group-hover:text-primary transition-colors">
+                                <TechCard className="h-full group relative overflow-hidden rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.02] hover:border-primary/30">
+                                    {/* Subtle gradient glow behind the card on hover */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                                    <CardHeader className="relative pb-4 pt-5 px-5 z-10">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="space-y-1.5 flex-1 min-w-0">
+                                                <CardTitle className="text-xl font-bold tracking-tight text-white/90 group-hover:text-primary transition-colors truncate">
                                                     {tpl.name}
                                                 </CardTitle>
-                                                <CardDescription className="font-mono text-xs">
+                                                <CardDescription className="text-sm text-white/50 truncate">
                                                     {tpl.title}
                                                 </CardDescription>
                                             </div>
                                             <Badge
+                                                variant="outline"
                                                 className={cn(
-                                                    "px-2.5 py-1 text-[10px] uppercase tracking-widest",
+                                                    "shrink-0 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border-white/10 bg-black/50 backdrop-blur-md rounded-full",
                                                     tpl.type === "individual"
-                                                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                                        : "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                                                        ? "text-emerald-400 group-hover:border-emerald-500/30"
+                                                        : "text-purple-400 group-hover:border-purple-500/30"
                                                 )}
                                             >
                                                 {tpl.type === "individual" ? "Egyéni" : "Csoportos"}
                                             </Badge>
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="space-y-6">
-                                        <div className="grid grid-cols-2 gap-3 text-sm font-mono text-muted-foreground bg-black/40 p-3 rounded-xl border border-white/5 group-hover:bg-primary/5 group-hover:border-primary/20 transition-colors">
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="h-4 w-4 text-primary" />
-                                                <span className="text-white">{tpl.duration_min}m</span>
+
+                                    <CardContent className="relative px-5 pb-5 space-y-5 z-10 flex flex-col h-[calc(100%-80px)] justify-between">
+                                        <div className="flex items-center gap-4 text-sm font-medium text-white/70 bg-white/5 rounded-xl px-4 py-3 border border-white/5 mx-auto w-full">
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <Clock className="h-[14px] w-[14px] text-primary" />
+                                                <span>{tpl.duration_min}m</span>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="w-[1px] h-4 bg-white/10" />
+                                            <div className="flex items-center gap-2 flex-1 justify-end">
                                                 {tpl.type === "group" ? (
-                                                    <Users className="h-4 w-4 text-emerald-500" />
+                                                    <Users className="h-[14px] w-[14px] text-emerald-400" />
                                                 ) : (
-                                                    <User className="h-4 w-4 text-emerald-500" />
+                                                    <User className="h-[14px] w-[14px] text-emerald-400" />
                                                 )}
-                                                <span className="text-white">{tpl.max_slots} fő</span>
+                                                <span>{tpl.max_slots} fő</span>
                                             </div>
-                                            {tpl.location_note && (
-                                                <div className="col-span-2 flex items-center gap-2 truncate">
-                                                    <MapPin className="h-4 w-4 flex-shrink-0 text-blue-400" />
-                                                    <span className="truncate text-white text-xs">{tpl.location_note}</span>
-                                                </div>
-                                            )}
                                         </div>
 
-                                        <div className="flex gap-3">
+                                        {tpl.location_note && (
+                                            <div className="flex items-center gap-2.5 text-xs text-white/50 px-1">
+                                                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                                                <span className="truncate">{tpl.location_note}</span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-2 pt-2 mt-auto">
                                             <Button
-                                                className="flex-1 gap-2 font-bold tracking-widest uppercase btn-telekom"
+                                                className="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold tracking-wide btn-telekom shadow-lg shadow-primary/20"
                                                 onClick={() => {
                                                     setSelectedTpl(tpl);
                                                     setScheduleOpen(true);
                                                 }}
                                             >
-                                                <Calendar className="h-4 w-4" />
+                                                <Calendar className="mr-2 h-4 w-4" />
                                                 Indítás
                                             </Button>
                                             <Button
-                                                variant="outline"
-                                                className="border-white/10 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-colors"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="shrink-0 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                                 onClick={() => handleDelete(tpl.id)}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -401,8 +409,8 @@ export default function TemplatesPage() {
                                         </div>
                                     </CardContent>
 
-                                    {/* Connection established effect */}
-                                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity" />
+                                    {/* Animated bottom border instead of top line for a more grounded feel */}
+                                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                 </TechCard>
                             </motion.div>
                         ))}
