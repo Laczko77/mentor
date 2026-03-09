@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
                 type: body.type,
                 start_time: sStart.toISOString(),
                 end_time: sEnd.toISOString(),
-                duration_min: durationMin,
                 max_slots: body.max_slots || 1,
                 location_note: body.location_note,
                 status: "open",

@@ -63,7 +63,6 @@ export async function POST(
                 type: tpl.type,
                 start_time: startDt.toISOString(),
                 end_time: endDt.toISOString(),
-                duration_min: tpl.duration_min,
                 max_slots: tpl.max_slots,
                 location_note: tpl.location_note,
                 status: "open",
