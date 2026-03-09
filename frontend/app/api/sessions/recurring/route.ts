@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireMentor, handleApiError } from "@/lib/server-auth";
-import { addDays, differenceInMinutes, parseISO } from "date-fns";
+import { addDays, differenceInMinutes } from "date-fns";
 import { v4 as uuidv4 } from "uuid";
+import { parseLocalTime } from "@/lib/timezone";
 
 export async function POST(request: NextRequest) {
     try {
@@ -22,8 +23,8 @@ export async function POST(request: NextRequest) {
         const groupId = uuidv4();
         const intervalDays = body.recurrence_rule === "weekly" ? 7 : 14;
 
-        const startDt = parseISO(body.start_time);
-        const endDt = parseISO(body.end_time);
+        const startDt = parseLocalTime(body.start_time);
+        const endDt = parseLocalTime(body.end_time);
         const durationMin = differenceInMinutes(endDt, startDt);
 
         const sessionsToInsert = [];

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireAuth, requireMentor, handleApiError } from "@/lib/server-auth";
+import { parseLocalTime } from "@/lib/timezone";
 
 export async function GET(request: NextRequest) {
     try {
@@ -77,8 +78,8 @@ export async function POST(request: NextRequest) {
                 mentor_id: user.id,
                 title: body.title,
                 type: body.type,
-                start_time: body.start_time,
-                end_time: body.end_time,
+                start_time: parseLocalTime(body.start_time).toISOString(),
+                end_time: parseLocalTime(body.end_time).toISOString(),
                 max_slots: body.max_slots,
                 location_note: body.location_note,
                 status: "open",

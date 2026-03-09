@@ -38,6 +38,10 @@ export async function apiFetch<T = unknown>(
         throw new Error(errorMsg);
     }
 
+    if (res.status === 204) {
+        return null as unknown as T;
+    }
+
     return res.json();
 }
 

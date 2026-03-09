@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireMentor, handleApiError } from "@/lib/server-auth";
+import { parseLocalTime } from "@/lib/timezone";
 
 export async function DELETE(
     request: NextRequest,
@@ -51,7 +52,8 @@ export async function POST(
         const startTime = body.start_time;
         if (!startTime) throw new Error("start_time szükséges");
 
-        const startDt = new Date(startTime);
+        const startDt = parseLocalTime(startTime);
+
         if (isNaN(startDt.getTime())) throw new Error("Érvénytelen időpont format");
         const endDt = new Date(startDt.getTime() + tpl.duration_min * 60000);
 
